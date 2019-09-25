@@ -61,12 +61,7 @@ class ShareDB(object):
     be reflected back in the original ShareDB instance, and may corrupt instance.
     '''
 
-    def __init__(self,
-        path=None,
-        reset=False,
-        readers=100,
-        buffer_size=10**5,
-        map_size=1000 * 1000 * 1000 * 1000):
+    def __init__(self, path=None, reset=False, readers=100, buffer_size=10**5, map_size=10**12):
         '''
         ShareDB constructor.
 
