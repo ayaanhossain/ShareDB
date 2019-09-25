@@ -64,18 +64,17 @@ class ShareDB(object):
     def __init__(self,
         path=None,
         reset=False,
-        parallel=40,
+        readers=100,
         buffer_size=10**5,
         map_size=1000 * 1000 * 1000 * 1000):
         '''
         ShareDB constructor.
 
-        :: path         - a/path/to/a/directory/to/presist/the/data (default=None)
-        :: reset        - boolean, if True - delete and recreate path (default=False)
-        :: only_strings - boolean, if True doesn't serialize keys and values when storing
-        :: parallel     - max no. of processes that'll read data in parallel (default=40 processes)
-        :: buffer_size  - max no. of commits after which a sync is triggered (default=100,000)
-        :: map_size     - max amount of bytes to allocate for storage (default=1TB)
+        :: path        - a/path/to/a/directory/to/presist/the/data (default=None)
+        :: reset       - boolean, if True - delete and recreate path (default=False)
+        :: readers     - max no. of processes that'll read data in parallel (default=40 processes)
+        :: buffer_size - max no. of commits after which a sync is triggered (default=100,000)
+        :: map_size    - max amount of bytes to allocate for storage (default=1TB)
 
         __init__ test cases.
 
@@ -99,7 +98,7 @@ class ShareDB(object):
         >>> myDB.PATH
         './test_init.ShareDB/'
         >>> myDB.PARALLEL
-        40
+        100
         >>> shutil.rmtree(myDB.PATH)
         '''
         # Check if a path is valid for creating ShareDB
@@ -131,7 +130,7 @@ class ShareDB(object):
         self.BCSIZE   = buffer_size    # Trigger sync after this many items inserted
         self.BQSIZE   = 0              # Approx. no. of items to sync in ShareDB
         self.MSLIMIT  = map_size       # Memory map size, maybe larger than RAM
-        self.PARALLEL = parallel       # Number of processes reading in parallel
+        self.PARALLEL = readers        # Number of processes reading in parallel
         self.DB = lmdb.open(self.PATH, # Configure ShareDB
             subdir=True,
             map_size=self.MSLIMIT,
@@ -522,7 +521,7 @@ class ShareDB(object):
         :: key_iter - a valid iterable of keys to query ShareDB for values
         :: default  - a default value to return when key is absent in ShareDB (default=None)
 
-        multiget_iter test cases.
+        multiget test cases.
 
         >>> myDB = ShareDB(path='./multiget.ShareDB', reset=True)
         >>> for i in range(100): myDB[i] = i**2
@@ -604,53 +603,164 @@ class ShareDB(object):
 
     # This block onwards need refactoring, tests and comments
 
-    def _del_pop_operator(self, key, txn, op):
-        if op == 'pop':
-            return self._get_unpacked_val(txn.pop(key=key))
-        elif op == 'del':
-            txn.delete(key=key)
-            return None
-        else:
-            raise Exception('op must be \'del\' or \'pop\' not {}'.format(op))
+    def _del_pop_from_disk(self, key, txn, opr, packed=False):
+        '''
+        Internal helper function to delete/pop key-value pair via txn and trigger sync.
 
-    def _del_pop_from_disk(self, key, txn, op, packed=False):
+        :: key    - a candidate key potentially in ShareDB
+        :: txn    - a transaction interface for delete/pop
+        :: opr    - string, must be 'del' or 'pop' specifying the operation
+        :: packed - boolean, If True - will attempt packing key (default=False)
+        '''
         if not packed:
             key = self._get_packed_key(key=key)
-        val = self._del_pop_operator(key=key, txn=txn, op=op)
+        if opr == 'pop':
+            val = self._get_unpacked_val(val=txn.pop(key=key))
+        elif opr == 'del':
+            txn.delete(key=key)
+            val = None
+        else:
+            raise Exception('opr must be \'del\' or \'pop\' not {}'.format(opr))
         self.BQSIZE += 1
-        self._trigger_sync()
+        self._trigger_sync()        
         return val
 
     def multiremove(self, key_iter):
+        '''
+        User function to remove all key-value pairs specified in the iterable of keys.
+
+        :: key_iter - a valid iterable of keys to be deleted from ShareDB
+        
+        multiremove test cases.
+
+        >>> myDB = ShareDB(path='./test_multiremove.ShareDB', reset=True)
+        >>> for i in range(100): myDB[i] = i**2
+        >>> len(myDB)
+        100
+        >>> myDB.close()
+        >>> myDB = ShareDB(path='./test_multiremove.ShareDB', reset=False)
+        >>> myDB.multiremove(range(100)).length()
+        0
+        >>> 0 in myDB
+        False
+        >>> shutil.rmtree(myDB.PATH)
+        '''
         with self.DB.begin(write=True) as keydeler:
             try:
                 for key in key_iter:
-                    self._del_pop_from_disk(key=key, txn=keydeler, op='del', packed=False)
+                    self._del_pop_from_disk(key=key, txn=keydeler, opr='del', packed=False)
             except Exception as E:
                 raise Exception('Given key_iter={} of {}, raised: {}'.format(key_iter, type(key_iter), E))
         return self
 
     def remove(self, key):
+        '''
+        User function to remove a key-value pair.
+
+        :: key - a valid key to be deleted from ShareDB
+        
+        remove test cases.
+
+        >>> myDB = ShareDB(path='./test_remove.ShareDB', reset=True)
+        >>> for i in range(100): myDB[i] = i**0.5
+        >>> len(myDB)
+        100
+        >>> myDB.close()
+        >>> myDB = ShareDB(path='./test_remove', reset=False)
+        >>> myDB.remove(99).length()
+        99
+        >>> 99 in myDB
+        False
+        >>> shutil.rmtree(myDB.PATH)
+        '''
         with self.DB.begin(write=True) as keydeler:
-            self._del_pop_from_disk(key=key, txn=keydeler, op='del', packed=False)
+            self._del_pop_from_disk(key=key, txn=keydeler, opr='del', packed=False)
         return self
 
     def __delitem__(self, key):
-        # TODO
-        return self.remove(key)
+        '''
+        Pythonic dunder function to remove a key-value pair.
 
-    def pop(self, key, default=None):
-        with self.DB.begin(write=True) as keypopper:
-            val = self._del_pop_from_disk(key=key, txn=keydeler, op='pop', packed=False)
-        return val
+        :: key - a valid key to be deleted from ShareDB
+        
+        __delitem__ test cases.
+
+        >>> myDB = ShareDB(path='./test_delitem.ShareDB', reset=True)
+        >>> for i in range(100): myDB[i] = i**0.5
+        >>> len(myDB)
+        100
+        >>> myDB.close()
+        >>> myDB = ShareDB(path='./test_delitem', reset=False)
+        >>> del myDB[99]
+        >>> 99 in myDB
+        False
+        >>> shutil.rmtree(myDB.PATH)
+        '''
+        return self.remove(key=key)
 
     def multipop(self, key_iter, default=None):
+        '''
+        User function to return an iterator of popped values for a given iterable of keys.
+
+        :: key_iter - a valid iterable of keys to be deleted from ShareDB
+        
+        multipop test cases.
+
+        >>> myDB = ShareDB(path='./test_multipop.ShareDB', reset=True)
+        >>> for i in range(100): myDB[i] = [i**0.5]
+        >>> len(myDB)
+        100
+        >>> myDB.close()
+        >>> myDB = ShareDB(path='./test_multipop', reset=False)
+        >>> pop_iter = myDB.multipop(range(49, 74))
+        >>> pop_iter.next()
+        [7.0]
+        >>> len(list(pop_iter))
+        24
+        >>> len(myDB)
+        75
+        >>> shutil.rmtree(myDB.PATH)
+        '''
         with self.DB.begin(write=True) as keypopper:
             try:
                 for key in key_iter:
-                    yield self._del_pop_from_disk(key=key, txn=keydeler, op='pop', packed=False)
+                    yield self._del_pop_from_disk(key=key, txn=keypopper, opr='pop', packed=False)
             except Exception as E:
                 raise Exception('Given key_iter={} of {}, raised: {}'.format(key_iter, type(key_iter), E))
+
+    def pop(self, key, default=None):
+        '''
+        User function to pop a key and return its value.
+
+        :: key - a valid key to be deleted from ShareDB
+        
+        pop test cases.
+
+        >>> myDB = ShareDB(path='./test_pop.ShareDB', reset=True)
+        >>> for i in range(100): myDB[i] = [i**0.5]
+        >>> len(myDB)
+        100
+        >>> myDB.close()
+        >>> myDB = ShareDB(path='./test_pop', reset=False)
+        >>> myDB.pop(49)
+        [7.0]
+        >>> 49 in myDB
+        False
+        >>> len(myDB)
+        99
+        >>> shutil.rmtree(myDB.PATH)
+        '''
+        with self.DB.begin(write=True) as keypopper:
+            val = self._del_pop_from_disk(key=key, txn=keypopper, opr='pop', packed=False)
+        return val
+
+    def multipopitem(self):
+        # TODO
+        pass
+
+    def popitem(self):
+        # TODO
+        pass
 
     def _iter_on_disk_kv(self, yield_key=False, unpack_key=False, yield_val=False, unpack_val=False):
         with self.DB.begin(write=False) as kviter:
@@ -686,10 +796,6 @@ class ShareDB(object):
         # TODO
         pass
 
-    def compact(self):
-        # TODO
-        pass
-
     def sync(self):
         '''
         User function to flush ShareDB inserts/changes/commits on to disk.
@@ -697,28 +803,9 @@ class ShareDB(object):
         self.DB.sync()
         return self
 
-    def close(self):
-        '''
-        User function to save and close ShareDB instance if unclosed.
-
-        close test cases.
-
-        >>> myDB = ShareDB(path='./test_close.ShareDB', reset=True)
-        >>> for i in range(10): myDB[range(i, i+5)] = range(i+5, i+10)
-        >>> len(myDB)
-        10
-        >>> myDB.close()
-        >>> myDB = ShareDB(path='./test_close.ShareDB', reset=False)
-        >>> len(myDB)
-        10
-        >>> assert len(myDB.clear()) == 0
-        >>> shutil.rmtree(myDB.PATH)
-        '''
-        if self.ALIVE:
-            self.sync()
-            self.DB.close()
-            self.ALIVE = False
-        return None
+    def compact(self):
+        # TODO
+        pass    
 
     def clear(self):
         '''
@@ -751,6 +838,33 @@ class ShareDB(object):
                 to_drop = self.DB.open_db()
                 dropper.drop(db=to_drop, delete=False)
         return self
+
+    def close(self):
+        '''
+        User function to save and close ShareDB instance if unclosed.
+
+        close test cases.
+
+        >>> myDB = ShareDB(path='./test_close.ShareDB', reset=True)
+        >>> for i in range(10): myDB[range(i, i+5)] = range(i+5, i+10)
+        >>> len(myDB)
+        10
+        >>> myDB.close()
+        >>> myDB = ShareDB(path='./test_close.ShareDB', reset=False)
+        >>> len(myDB)
+        10
+        >>> assert len(myDB.clear()) == 0
+        >>> shutil.rmtree(myDB.PATH)
+        '''
+        if self.ALIVE:
+            self.sync()
+            self.DB.close()
+            self.ALIVE = False
+        return None
+
+    def drop(self):
+        # TODO
+        pass
 
 def get_string(length):
     return ''.join(random.choice('ATGC') for _ in xrange(length))
@@ -862,5 +976,5 @@ def run_tests():
     doctest.testmod()
 
 if __name__ == '__main__':
-    main()
-    # run_tests()
+    # main()
+    run_tests()
