@@ -36,6 +36,7 @@ import collections
 import shutil
 import os
 import uuid
+import numbers
 import msgpack
 import cPickle
 import lmdb
@@ -293,7 +294,7 @@ class ShareDB(object):
         '''
         key = self._get_packed_key(key=key)
         val = self._get_packed_val(val=val)
-        txn.put(key=key, value=val)
+        txn.put(key=key, value=val, overwrite=True, append=False)
         self.BQSIZE += 1
         self._trigger_sync()
         return None
@@ -749,15 +750,32 @@ class ShareDB(object):
             val = self._del_pop_from_disk(key=key, txn=keypopper, opr='pop', packed=False)
         return val
 
-    def multipopitem(self):
-        # TODO
-        pass
-
-    def popitem(self):
-        # TODO
-        pass
-
     def _iter_on_disk_kv(self, yield_key=False, unpack_key=False, yield_val=False, unpack_val=False):
+        '''
+        Internal helper function to iterate over key and/or values in ShareDB.
+
+        :: yield_key  - boolean, if True will stream keys
+        :: unpack_key - boolean, if True will un-msgpack keys
+        :: yield_val  - boolean, if True will stream values
+        :: unpack_val - boolean, if True will un-msgpack values
+
+        _iter_on_disk_kv test cases.
+
+        >>> myDB = ShareDB(path='./test_iter_on_disk_kv.ShareDB', reset=True)
+        >>> myDB.multiset((i,i**2) for i in range(10)).length()
+        10
+        >>> len(list(myDB._iter_on_disk_kv(1,0,0,0)))
+        10
+        >>> myDB.close()
+        >>> myDB = ShareDB(path='./test_iter_on_disk_kv', reset=False)
+        >>> len(list(myDB._iter_on_disk_kv(0,0,1,0)))
+        10
+        >>> 9 in myDB
+        True
+        >>> 10 in myDB
+        False
+        >>> shutil.rmtree(myDB.PATH)
+        '''
         with self.DB.begin(write=False) as kviter:
             with kviter.cursor() as kvcursor:
                 for key,val in kvcursor:
@@ -775,17 +793,129 @@ class ShareDB(object):
                         raise Exception('All four params to _iter_on_disk_kv cannot be False or None')
 
     def items(self):
+        '''
+        User function to iterate over key-value pairs in ShareDB.
+
+        items test cases.
+
+        >>> myDB = ShareDB(path='./test_items.ShareDB', reset=True)
+        >>> myDB.multiset((i,i**2) for i in range(10)).length()
+        10
+        >>> len(list(myDB.items()))
+        10
+        >>> myDB.close()
+        >>> myDB = ShareDB(path='./test_items', reset=False)
+        >>> 9 in myDB
+        True
+        >>> 10 in myDB
+        False
+        >>> shutil.rmtree(myDB.PATH)
+        '''
         return self._iter_on_disk_kv(yield_key=True, unpack_key=True, yield_val=True, unpack_val=True)
 
     def keys(self):
-        return self._iter_on_disk_kv(yield_key=True, unpack_key=True, yield_val=False, unpack_val=False)
+        '''
+        User function to iterate over keys in ShareDB.
+
+        keys test cases.
+
+        >>> myDB = ShareDB(path='./test_keys.ShareDB', reset=True)
+        >>> myDB.multiset((i,i**2) for i in range(10)).length()
+        10
+        >>> len(list(myDB.keys()))
+        10
+        >>> myDB.close()
+        >>> myDB = ShareDB(path='./test_keys', reset=False)
+        >>> 9 in myDB
+        True
+        >>> 10 in myDB
+        False
+        >>> shutil.rmtree(myDB.PATH)
+        '''
+        return self._iter_on_disk_kv(yield_key=True, unpack_key=True)
 
     def values(self):
-        return self._iter_on_disk_kv(yield_key=False, unpack_key=False, yield_val=True, unpack_val=True)
+        '''
+        User function to iterate over values in ShareDB.
 
-    def popitem(self, key, default=None, sync=True):
-        # TODO
-        pass    
+        values test cases.
+
+        >>> myDB = ShareDB(path='./test_values.ShareDB', reset=True)
+        >>> myDB.multiset((i,i**2) for i in range(10)).length()
+        10
+        >>> len(list(myDB.values()))
+        10
+        >>> myDB.close()
+        >>> myDB = ShareDB(path='./test_values', reset=False)
+        >>> 9 in myDB
+        True
+        >>> 10 in myDB
+        False
+        >>> shutil.rmtree(myDB.PATH)
+        '''
+        return self._iter_on_disk_kv(yield_val=True, unpack_val=True)
+
+    def multipopitem(self, num_items=None):
+        '''
+        User function to pop over key-value pairs in ShareDB.
+
+        :: num_items - an integer specifying the number of items 
+
+        multpopitem test cases.
+
+        >>> myDB = ShareDB(path='./test_multpopitem.ShareDB', reset=True)
+        >>> myDB.multiset((i,i**2) for i in range(10)).length()
+        10
+        >>> len(list(myDB.keys()))
+        10
+        >>> myDB.close()
+        >>> myDB = ShareDB(path='./test_multpopitem', reset=False)
+        >>> len(list(myDB.multipopitem(num_items='THIS IS NOT A NUMBER')))
+        Traceback (most recent call last):
+        Exception: num_items=THIS IS NOT A NUMBER, of <type 'str'> must be an integer/long/float
+        >>> len(list(myDB.multipopitem(num_items=len(myDB)*1.0)))
+        10
+        >>> 1 in myDB
+        False
+        >>> shutil.rmtree(myDB.PATH)
+        '''
+        # Check if num_items is valid, and set up accordingly
+        if not isinstance(num_items, numbers.Real):
+            raise Exception('num_items={}, of {} must be an integer/long/float'.format(num_items, type(num_items)))
+        else:
+            num_items = min(num_items, self.length())
+
+        # Iterate over ShareDB and load num_item keys in packed state
+        curr_key  = self._iter_on_disk_kv(yield_key=True, unpack_key=False)
+        item_keys = []        
+        while len(item_keys) < num_items: item_keys.append(curr_key.next())
+
+        # Pop packed keys in item_keys, and yield the unapacked items
+        with self.DB.begin(write=True) as itempopper:
+            for item_key in item_keys:
+                yield self._get_unpacked_key(key=item_key), self._del_pop_from_disk(key=item_key, txn=itempopper, opr='pop', packed=True)
+            item_keys = None
+
+    def popitem(self):
+        '''
+        User function to pop a single key-value pairs in ShareDB.
+
+        popitem test cases.
+
+        >>> myDB = ShareDB(path='./test_popitem.ShareDB', reset=True)
+        >>> myDB.multiset((i,i**2) for i in range(10, 20)).length()
+        10
+        >>> myDB.close()
+        >>> myDB = ShareDB(path='./test_popitem', reset=False)
+        >>> myDB.popitem()
+        (10, 100)
+        >>> shutil.rmtree(myDB.PATH)
+        '''
+        curr_key = self._iter_on_disk_kv(yield_key=True, unpack_key=False)
+        item_key = curr_key.next()
+        with self.DB.begin(write=True) as itempopper:
+            key,val = self._get_unpacked_key(key=item_key), self._del_pop_from_disk(key=item_key, txn=itempopper, opr='pop', packed=True)
+        return key,val
 
     def update():
         # TODO
