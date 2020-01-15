@@ -22,6 +22,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
 
+'''
+TODOS
+(1) Bake in support for cPickle serialization
+    - will change packing/unpacking functions
+    - will change config storage
+    - default serialization ?
+(2) Do we need compaction function?
+(3) Rethink all test cases
+(4) Seperate Test and Benchmark modules
+(5) Finish docs
+'''
+
 # Not core
 import random
 import time
@@ -50,12 +62,10 @@ class ShareDB(object):
     (4) keys and values are msgpack/pickle compliant, and
     (5) all key-value operations must be fast with minimal overhead.
 
-    Note: cPickle functionality in progress.
-
     ShareDB operates via an LMDB structure in an optimistic manner for reading and 
     writing data. As long as you maintain a one-writer-many-reader workflow there
     should not be any problem. Sending a ShareDB instance from parent to children 
-    processes is fine, or you may open several instances in children processes 
+    processes is fine, or you may open parallel instances in children processes 
     for reading. Parallel writes made in children processes are not guaranteed to 
     be reflected back in the original ShareDB instance, and may corrupt instance.
     '''
@@ -104,15 +114,29 @@ class ShareDB(object):
                          buffer_size=100000 of <type 'int'>,
                          map_size=1000000000000 of <type 'int'>,
                          raised: [Errno 13] Permission denied: '/22.f.ShareDB/'
-        >>> myDB = ShareDB(path='./test_init.ShareDB', reset=True)
-        >>> myDB.ALIVE
-        True
-        >>> len(myDB) == 0
-        True
+        >>> myDB = ShareDB(path='./test_init.ShareDB', reset=True, readers='XYZ', buffer_size=100, map_size=10**3)
+        Traceback (most recent call last):
+        Exception: Given path=./test_init.ShareDB/ of <type 'str'>,
+                         reset=True of <type 'bool'>,
+                         readers=XYZ of <type 'str'>,
+                         buffer_size=100 of <type 'int'>,
+                         map_size=1000 of <type 'int'>,
+                         raised: invalid literal for int() with base 10: 'XYZ'
+        >>> myDB = ShareDB(path='./test_init.ShareDB', reset=True, readers=40, buffer_size=100, map_size=10**3)
         >>> myDB.PATH
         './test_init.ShareDB/'
+        >>> myDB.ALIVE
+        True
         >>> myDB.PARALLEL
+        40
+        >>> myDB.BCSIZE
         100
+        >>> myDB.BQSIZE
+        0
+        >>> myDB.MSLIMIT
+        1000
+        >>> len(myDB) == 0
+        True
         >>> myDB.drop()
         '''
         try:
