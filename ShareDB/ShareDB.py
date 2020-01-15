@@ -22,14 +22,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
 
-# Maybe Core
-import random
-
 # Not core
-import time   # Not core
-import sys    # Not core
+import random
+import time
+import sys
 import multiprocessing
-
 import collections
 
 # Core imports
@@ -39,12 +36,13 @@ import uuid
 import numbers
 import msgpack
 import cPickle
+import ConfigParser
 import lmdb
 
 class ShareDB(object):
     '''
     ShareDB is a lightweight on-disk key-value store with a  dictionary-like interface
-    built on top of LMDB and is intended to replace a python dictionary when:
+    built on top of LMDB and is intended to replace a python dictionary when
 
     (1) the amount of data to store will not fit in main memory,
     (2) the data needs to persist on disk for later reuse,
@@ -66,8 +64,8 @@ class ShareDB(object):
         '''
         ShareDB constructor.
 
-        :: path        - a/path/to/a/directory/to/presist/the/data (default=None)
-        :: reset       - boolean, if True - delete and recreate path (default=False)
+        :: path        - a/path/to/a/directory/to/persist/the/data (default=None)
+        :: reset       - boolean, if True - delete and recreate path following parameters (default=False)
         :: readers     - max no. of processes that'll read data in parallel (default=40 processes)
         :: buffer_size - max no. of commits after which a sync is triggered (default=100,000)
         :: map_size    - max amount of bytes to allocate for storage (default=1TB)
@@ -76,16 +74,36 @@ class ShareDB(object):
 
         >>> myDB = ShareDB()
         Traceback (most recent call last):
-        Exception: Given path=None of <type 'NoneType'>, raised: 'NoneType' object has no attribute 'endswith'
+        Exception: Given path=None of <type 'NoneType'>,
+                         reset=False of <type 'bool'>,
+                         readers=100 of <type 'int'>,
+                         buffer_size=100000 of <type 'int'>,
+                         map_size=1000000000000 of <type 'int'>,
+                         raised: 'NoneType' object has no attribute 'endswith'
         >>> myDB = ShareDB(path=True)
         Traceback (most recent call last):
-        Exception: Given path=True of <type 'bool'>, raised: 'bool' object has no attribute 'endswith'
+        Exception: Given path=True of <type 'bool'>,
+                         reset=False of <type 'bool'>,
+                         readers=100 of <type 'int'>,
+                         buffer_size=100000 of <type 'int'>,
+                         map_size=1000000000000 of <type 'int'>,
+                         raised: 'bool' object has no attribute 'endswith'
         >>> myDB = ShareDB(path=123)
         Traceback (most recent call last):
-        Exception: Given path=123 of <type 'int'>, raised: 'int' object has no attribute 'endswith'
+        Exception: Given path=123 of <type 'int'>,
+                         reset=False of <type 'bool'>,
+                         readers=100 of <type 'int'>,
+                         buffer_size=100000 of <type 'int'>,
+                         map_size=1000000000000 of <type 'int'>,
+                         raised: 'int' object has no attribute 'endswith'
         >>> myDB = ShareDB(path='/22.f')
         Traceback (most recent call last):
-        Exception: Given path=/22.f.ShareDB/ of <type 'str'>, raised: [Errno 13] Permission denied: '/22.f.ShareDB/'
+        Exception: Given path=/22.f.ShareDB/ of <type 'str'>,
+                         reset=False of <type 'bool'>,
+                         readers=100 of <type 'int'>,
+                         buffer_size=100000 of <type 'int'>,
+                         map_size=1000000000000 of <type 'int'>,
+                         raised: [Errno 13] Permission denied: '/22.f.ShareDB/'
         >>> myDB = ShareDB(path='./test_init.ShareDB', reset=True)
         >>> myDB.ALIVE
         True
@@ -95,49 +113,56 @@ class ShareDB(object):
         './test_init.ShareDB/'
         >>> myDB.PARALLEL
         100
-        >>> shutil.rmtree(myDB.PATH)
+        >>> myDB.drop()
         '''
-        # Check if a path is valid for creating ShareDB
         try:
+            # Format path correctly
             path  = self._trim_suffix(given_str=path, suffix='/')
             path  = self._trim_suffix(given_str=path, suffix='.ShareDB')
             path += '.ShareDB/'
+
+            # Reset ShareDB instance if necessary
+            if reset:
+                self._clear_path(path)
+
+            # Create path if absent
             if not os.path.isdir(path):
                 os.makedirs(path)
+
+            # Create configuration if absent
+            if not os.path.exists(path+'ShareDB.config'):
+                config = self._store_config(path, buffer_size, map_size, readers)
+            # Otherwise load configuration
             else:
-                checkfile = 'checkfile{}$'.format(uuid.UUID(bytes=os.urandom(16), version=4))
-                checkpath = path + checkfile
-                with open(checkpath, 'w') as tempfile:
-                    pass
-                os.remove(checkpath)
+                config = self._load_config(path)
+
+            # Setup ShareDB instance
+            self.PATH     = path                                        # Path to ShareDB
+            self.ALIVE    = True                                        # Instance is alive
+            self.PARALLEL = config.getint('ShareDB Config', 'PARALLEL') # Number of processes reading in parallel
+            self.BCSIZE   = config.getint('ShareDB Config', 'BCSIZE')   # Trigger sync after this many items inserted
+            self.BQSIZE   = config.getint('ShareDB Config', 'BQSIZE')   # Approx. no. of items to sync in ShareDB
+            self.MSLIMIT  = config.getint('ShareDB Config', 'MSLIMIT')  # Memory map size, maybe larger than RAM
+            self.DB = lmdb.open(self.PATH,
+                subdir=True,
+                map_size=self.MSLIMIT,
+                create=True,
+                readahead=False,
+                writemap=True,
+                map_async=True,
+                max_readers=self.PARALLEL,
+                max_dbs=0,
+                lock=True
+            )
+                
         except Exception as E:
-            raise Exception('Given path={} of {}, raised: {}'.format(path, type(path), E))
-
-        # Clear path if necessary
-        if reset:
-            if os.path.isdir(path):
-                shutil.rmtree(path, ignore_errors=True)
-            elif os.path.exists(path):
-                os.remove(path)
-
-        # Setup/Load ShareDB
-        self.ALIVE    = True           # Instance is alive
-        self.PATH     = path           # Path to store/load the DB
-        self.BCSIZE   = buffer_size    # Trigger sync after this many items inserted
-        self.BQSIZE   = 0              # Approx. no. of items to sync in ShareDB
-        self.MSLIMIT  = map_size       # Memory map size, maybe larger than RAM
-        self.PARALLEL = readers        # Number of processes reading in parallel
-        self.DB = lmdb.open(self.PATH, # Configure ShareDB
-            subdir=True,
-            map_size=self.MSLIMIT,
-            create=True,
-            readahead=False,
-            writemap=True,
-            map_async=True,
-            max_readers=self.PARALLEL,
-            max_dbs=0,
-            lock=True
-        )
+            raise Exception('''Given path={} of {},
+                 reset={} of {},
+                 readers={} of {},
+                 buffer_size={} of {},
+                 map_size={} of {},
+                 raised: {}'''.format(path, type(path), reset, type(reset), readers, type(readers), buffer_size, type(buffer_size), map_size, type(map_size), E)
+            )
 
     def _trim_suffix(self, given_str, suffix):
         '''
@@ -146,6 +171,37 @@ class ShareDB(object):
         if given_str.endswith(suffix):
             return given_str[:-len(suffix)]
         return given_str
+
+    def _clear_path(self, path):
+        '''
+        Internal helper function to clear given path.
+        '''
+        if os.path.isdir(path):
+            shutil.rmtree(path, ignore_errors=True)
+        elif os.path.exists(path):
+            os.remove(path)
+
+    def _store_config(self, path, buffer_size, map_size, readers):
+        '''
+        Internal helper funtion to create ShareDB configuration file.
+        '''
+        config = ConfigParser.RawConfigParser()
+        config.add_section('ShareDB Config')
+        config.set('ShareDB Config', 'PARALLEL', readers)
+        config.set('ShareDB Config', 'BCSIZE',   buffer_size)
+        config.set('ShareDB Config', 'BQSIZE',   0)
+        config.set('ShareDB Config', 'MSLIMIT',  map_size)
+        with open(path+'ShareDB.config', 'w') as config_file:
+            config.write(config_file)
+        return config
+
+    def _load_config(self, path):
+        '''
+        Internal helper funtion to load ShareDB configuration file.
+        '''
+        config = ConfigParser.RawConfigParser()
+        config.read(path+'ShareDB.config')
+        return config
 
     def __repr__(self):
         '''
@@ -156,8 +212,7 @@ class ShareDB(object):
         >>> myDB = ShareDB(path='./test_repr.ShareDB', reset=True)
         >>> myDB
         ShareDB instantiated from ./test_repr.ShareDB/.
-        >>> myDB.close()
-        >>> shutil.rmtree(myDB.PATH)
+        >>> myDB.drop()
         '''
         return 'ShareDB instantiated from {}.'.format(self.PATH)
 
@@ -170,8 +225,7 @@ class ShareDB(object):
         >>> myDB = ShareDB(path='./test_str.ShareDB', reset=True)
         >>> myDB
         ShareDB instantiated from ./test_str.ShareDB/.
-        >>> myDB.close()
-        >>> shutil.rmtree(myDB.PATH)
+        >>> myDB.drop()
         '''
         return repr(self)
 
@@ -183,7 +237,7 @@ class ShareDB(object):
 
         _get_packed_key test cases.
 
-        >>> myDB = ShareDB(path='./test_get_packed_key.ShareDB', reset=True)
+        >>> myDB = ShareDB(path='./test_get_packed_key', reset=True)
         >>> test_key = [1, '2', 3.0, None]
         >>> myDB._get_packed_key(key=test_key) == msgpack.packb(test_key)
         True
@@ -193,7 +247,7 @@ class ShareDB(object):
         >>> myDB._get_packed_key(key=None)
         Traceback (most recent call last):
         Exception: ShareDB cannot use <type 'NoneType'> objects as keys or values
-        >>> shutil.rmtree(myDB.PATH)
+        >>> myDB.drop()
         '''
         if key is None:
             raise Exception('ShareDB cannot use {} objects as keys or values'.format(type(None)))
@@ -215,7 +269,7 @@ class ShareDB(object):
         >>> test_key = [1, '2', 3.0, None]
         >>> myDB._get_unpacked_key(key=myDB._get_packed_key(key=test_key)) == test_key
         True
-        >>> shutil.rmtree(myDB.PATH)
+        >>> myDB.drop()
         '''
         if key is None:
             raise Exception('ShareDB cannot use {} objects as keys or values'.format(type(None)))
@@ -243,7 +297,7 @@ class ShareDB(object):
         >>> myDB._get_packed_val(val=None)
         Traceback (most recent call last):
         Exception: ShareDB cannot use <type 'NoneType'> objects as keys or values
-        >>> shutil.rmtree(myDB.PATH)
+        >>> myDB.drop()
         '''
         if val is None:
             raise Exception('ShareDB cannot use {} objects as keys or values'.format(type(None)))
@@ -265,7 +319,7 @@ class ShareDB(object):
         >>> test_val = {0: [1, '2', 3.0, None]}
         >>> myDB._get_unpacked_val(val=myDB._get_packed_val(val=test_val)) == test_val
         True
-        >>> shutil.rmtree(myDB.PATH)
+        >>> myDB.drop()
         '''
         if val is None:
             raise Exception('ShareDB cannot use {} objects as keys or values'.format(type(None)))
@@ -334,7 +388,7 @@ class ShareDB(object):
         >>> myDB[set(range(1))] = range(1)
         Traceback (most recent call last):
         Exception: Given key=set([0]) of <type 'set'>, raised: can't serialize set([0])
-        >>> shutil.rmtree(myDB.PATH)
+        >>> myDB.drop()
         '''
         with self.DB.begin(write=True) as kvsetter:
             try:
@@ -363,7 +417,7 @@ class ShareDB(object):
         ShareDB instantiated from ./test_set.ShareDB/.
         >>> myDB.set(key='ANOTHER KEY', val=[1, 2, 3, 4])
         ShareDB instantiated from ./test_set.ShareDB/.
-        >>> shutil.rmtree(myDB.PATH)
+        >>> myDB.drop()
         '''
         with self.DB.begin(write=True) as kvsetter:
             self._insert_kv_in_txn(key=key, val=val, txn=kvsetter)
@@ -388,7 +442,7 @@ class ShareDB(object):
         >>> myDB[set(['KEY'])] = 'SOME_VALUE'
         Traceback (most recent call last):
         Exception: Given key=set(['KEY']) of <type 'set'>, raised: can't serialize set(['KEY'])
-        >>> shutil.rmtree(myDB.PATH)
+        >>> myDB.drop()
         '''
         return self.set(key=key, val=val)
 
@@ -404,7 +458,7 @@ class ShareDB(object):
         100
         >>> myDB.sync().clear().length()
         0
-        >>> shutil.rmtree(myDB.PATH)
+        >>> myDB.drop()
         '''
         return int(self.DB.stat()['entries']) 
 
@@ -426,7 +480,7 @@ class ShareDB(object):
         ShareDB instantiated from ./test_len.ShareDB/.
         >>> len(myDB)
         0
-        >>> shutil.rmtree(myDB.PATH)
+        >>> myDB.drop()
         '''
         return self.length()
 
@@ -436,7 +490,7 @@ class ShareDB(object):
 
         :: key     - a valid key to query ShareDB for associated value
         :: txn     - a transaction interface for query
-        :: packed  - boolean, If True - will attempt packing key (default=False)
+        :: packed  - boolean, if True - will attempt packing key (default=False)
         :: default - a default value to return when key is absent (default=None)
         '''
         if not packed:
@@ -449,7 +503,7 @@ class ShareDB(object):
         
         :: key     - a valid key to query ShareDB for associated value
         :: txn     - a transaction interface for query
-        :: packed  - boolean, If True - will attempt packing key (default=False)
+        :: packed  - boolean, if True - will attempt packing key (default=False)
         :: default - a default value to return when key is absent (default=None)
         '''
         val = self._get_val_on_disk(key=key, txn=txn, packed=packed, default=default)
@@ -480,7 +534,7 @@ class ShareDB(object):
         ShareDB instantiated from ./test_get.ShareDB/.
         >>> myDB.get(key=81, default='SENTIENTDEFAULT')
         'SENTIENTDEFAULT'
-        >>> shutil.rmtree(myDB.PATH)
+        >>> myDB.drop()
         '''
         with self.DB.begin(write=False) as kvgetter:
             val = self._get_unpacked_val_on_disk(key=key, txn=kvgetter, packed=False, default=default)
@@ -506,7 +560,7 @@ class ShareDB(object):
         >>> myDB[set([49.0])]
         Traceback (most recent call last):
         Exception: Given key=set([49.0]) of <type 'set'>, raised: can't serialize set([49.0])
-        >>> shutil.rmtree(myDB.PATH)
+        >>> myDB.drop()
         '''
         return self.get(key=key, default=None)
 
@@ -529,7 +583,7 @@ class ShareDB(object):
         True
         >>> myDB.multiget(key_iter=range(100, 110), default=False).next()
         False
-        >>> shutil.rmtree(myDB.PATH)
+        >>> myDB.drop()
         '''
         with self.DB.begin(write=False) as kvgetter:
             try:
@@ -557,7 +611,7 @@ class ShareDB(object):
         False
         >>> myDB.multiset(((i,[i**0.5, i**2.0]) for i in range(100))).has_key(49)
         True
-        >>> shutil.rmtree(myDB.PATH)
+        >>> myDB.drop()
         '''
         with self.DB.begin(write=False) as kvgetter:
             val = self._get_val_on_disk(key=key, txn=kvgetter, packed=False, default=None)
@@ -593,7 +647,7 @@ class ShareDB(object):
         0
         >>> 64 in myDB.multiset(((i,[i**0.5, i**2.0]) for i in range(100)))
         True
-        >>> shutil.rmtree(myDB.PATH)
+        >>> myDB.drop()
         '''        
         return self.has_key(key=key)
 
@@ -606,19 +660,23 @@ class ShareDB(object):
         :: key    - a candidate key potentially in ShareDB
         :: txn    - a transaction interface for delete/pop
         :: opr    - string, must be 'del' or 'pop' specifying the operation
-        :: packed - boolean, If True - will attempt packing key (default=False)
+        :: packed - boolean, if True - will attempt packing key (default=False)
         '''
         if not packed:
             key = self._get_packed_key(key=key)
         if opr == 'pop':
-            val = self._get_unpacked_val(val=txn.pop(key=key))
+            try:
+                val = self._get_unpacked_val(val=txn.pop(key=key))
+            except:
+                key = self._get_unpacked_key(key=key)
+                raise KeyError('key={} of {} is absent'.format(key, type(key)))
         elif opr == 'del':
             txn.delete(key=key)
             val = None
         else:
             raise Exception('opr must be \'del\' or \'pop\' not {}'.format(opr))
         self.BQSIZE += 1
-        self._trigger_sync()        
+        self._trigger_sync()
         return val
 
     def multiremove(self, key_iter):
@@ -639,7 +697,7 @@ class ShareDB(object):
         0
         >>> 0 in myDB
         False
-        >>> shutil.rmtree(myDB.PATH)
+        >>> myDB.drop()
         '''
         with self.DB.begin(write=True) as keydeler:
             try:
@@ -667,7 +725,7 @@ class ShareDB(object):
         99
         >>> 99 in myDB
         False
-        >>> shutil.rmtree(myDB.PATH)
+        >>> myDB.drop()
         '''
         with self.DB.begin(write=True) as keydeler:
             self._del_pop_from_disk(key=key, txn=keydeler, opr='del', packed=False)
@@ -690,7 +748,7 @@ class ShareDB(object):
         >>> del myDB[99]
         >>> 99 in myDB
         False
-        >>> shutil.rmtree(myDB.PATH)
+        >>> myDB.drop()
         '''
         return self.remove(key=key)
 
@@ -715,7 +773,11 @@ class ShareDB(object):
         24
         >>> len(myDB)
         75
-        >>> shutil.rmtree(myDB.PATH)
+        >>> pop_iter = myDB.multipop([199, 200])
+        >>> pop_iter.next()
+        Traceback (most recent call last):
+        Exception: Given key_iter=[199, 200] of <type 'list'>, raised: "key=199 of <type 'int'> is absent"
+        >>> myDB.drop()
         '''
         with self.DB.begin(write=True) as keypopper:
             try:
@@ -744,7 +806,10 @@ class ShareDB(object):
         False
         >>> len(myDB)
         99
-        >>> shutil.rmtree(myDB.PATH)
+        >>> myDB.pop(49)
+        Traceback (most recent call last):
+        KeyError: "key=49 of <type 'int'> is absent"
+        >>> myDB.drop()
         '''
         with self.DB.begin(write=True) as keypopper:
             val = self._del_pop_from_disk(key=key, txn=keypopper, opr='pop', packed=False)
@@ -774,7 +839,7 @@ class ShareDB(object):
         True
         >>> 10 in myDB
         False
-        >>> shutil.rmtree(myDB.PATH)
+        >>> myDB.drop()
         '''
         with self.DB.begin(write=False) as kviter:
             with kviter.cursor() as kvcursor:
@@ -809,7 +874,7 @@ class ShareDB(object):
         True
         >>> 10 in myDB
         False
-        >>> shutil.rmtree(myDB.PATH)
+        >>> myDB.drop()
         '''
         return self._iter_on_disk_kv(yield_key=True, unpack_key=True, yield_val=True, unpack_val=True)
 
@@ -830,7 +895,7 @@ class ShareDB(object):
         True
         >>> 10 in myDB
         False
-        >>> shutil.rmtree(myDB.PATH)
+        >>> myDB.drop()
         '''
         return self._iter_on_disk_kv(yield_key=True, unpack_key=True)
 
@@ -851,7 +916,7 @@ class ShareDB(object):
         True
         >>> 10 in myDB
         False
-        >>> shutil.rmtree(myDB.PATH)
+        >>> myDB.drop()
         '''
         return self._iter_on_disk_kv(yield_val=True, unpack_val=True)
 
@@ -877,7 +942,7 @@ class ShareDB(object):
         10
         >>> 1 in myDB
         False
-        >>> shutil.rmtree(myDB.PATH)
+        >>> myDB.drop()
         '''
         # Check if num_items is valid, and set up accordingly
         if not isinstance(num_items, numbers.Real):
@@ -909,17 +974,13 @@ class ShareDB(object):
         >>> myDB = ShareDB(path='./test_popitem', reset=False)
         >>> myDB.popitem()
         (10, 100)
-        >>> shutil.rmtree(myDB.PATH)
+        >>> myDB.drop()
         '''
         curr_key = self._iter_on_disk_kv(yield_key=True, unpack_key=False)
         item_key = curr_key.next()
         with self.DB.begin(write=True) as itempopper:
             key,val = self._get_unpacked_key(key=item_key), self._del_pop_from_disk(key=item_key, txn=itempopper, opr='pop', packed=True)
         return key,val
-
-    def update():
-        # TODO
-        pass
 
     def sync(self):
         '''
@@ -930,7 +991,17 @@ class ShareDB(object):
 
     def compact(self):
         # TODO
-        pass    
+        pass
+
+    def _delete_keys_and_db(self, drop_DB):
+        '''
+        Internal helper function to delete keys and drop database.
+
+        :: drop_DB - boolean, if True - will delete the database
+        '''
+        with self.DB.begin(write=True) as dropper:
+            to_drop = self.DB.open_db()
+            dropper.drop(db=to_drop, delete=drop_DB)
 
     def clear(self):
         '''
@@ -951,17 +1022,12 @@ class ShareDB(object):
         100
         >>> myDB.clear().length()
         0
-        >>> myDB.ALIVE
-        True
-        >>> myDB.close()
-        >>> myDB.ALIVE
-        False
-        >>> shutil.rmtree(myDB.PATH)
+        >>> for i in range(100): myDB[i] = [i**0.5, i**2]
+        >>> len(myDB)
+        100
+        >>> myDB.drop()
         '''
-        if self.ALIVE:
-            with self.DB.begin(write=True) as dropper:
-                to_drop = self.DB.open_db()
-                dropper.drop(db=to_drop, delete=False)
+        self._delete_keys_and_db(drop_DB=False)
         return self
 
     def close(self):
@@ -979,7 +1045,14 @@ class ShareDB(object):
         >>> len(myDB)
         10
         >>> assert len(myDB.clear()) == 0
-        >>> shutil.rmtree(myDB.PATH)
+        >>> myDB.close()
+        >>> myDB.ALIVE
+        False
+        >>> 1 in myDB
+        Traceback (most recent call last):
+        Error: Attempt to operate on closed/deleted/dropped object.
+        >>> myDB = ShareDB(path='./test_close.ShareDB', reset=False)
+        >>> myDB.drop()
         '''
         if self.ALIVE:
             self.sync()
@@ -988,8 +1061,33 @@ class ShareDB(object):
         return None
 
     def drop(self):
-        # TODO
-        pass
+        '''
+        User function to delete a ShareDB instance.
+
+        drop test cases.
+        
+        >>> myDB = ShareDB(path='./test_drop.ShareDB', reset=True)
+        >>> for i in range(10): myDB[range(i, i+5)] = range(i+5, i+10)
+        >>> len(myDB)
+        10
+        >>> len(myDB)
+        10
+        >>> myDB.drop()
+        >>> myDB.ALIVE
+        False
+        >>> 0 in myDB
+        Traceback (most recent call last):
+        Error: Attempt to operate on closed/deleted/dropped object.
+        >>> myDB = ShareDB(path='./test_drop.ShareDB', reset=False)
+        >>> len(myDB)
+        0
+        >>> myDB.drop()
+        '''
+        if self.ALIVE:
+            self._delete_keys_and_db(drop_DB=True)
+            self.close()
+            self._clear_path(self.PATH)
+        return None
 
 def get_string(length):
     return ''.join(random.choice('ATGC') for _ in xrange(length))
@@ -1033,7 +1131,7 @@ def worker_process(path, population, pid):
         # assert dictionary[item] == val+1
         total_time += time.time() - t0
         if random.random() < 0.001:
-            print 'PID {} - throughput @ {} queries/second | Remaining {}'.format(pid, i/total_time, len(dictionary)-i-1)
+            print 'READER {} - throughput @ {} queries/second | Remaining {}'.format(pid, i/total_time, len(dictionary)-i-1)
             # time.sleep(0.01)
 
 def main():
@@ -1082,7 +1180,8 @@ def main():
 
     print '\n READ FINISHED \n'
 
-    shutil.rmtree('./test.ShareDB')
+    dictionary = ShareDB(path='./test.ShareDB', reset=False)
+    dictionary.drop()
 
     # dictionary = ShareDB(path='./test.ShareDB', reset=False)
     # cnt = collections.defaultdict(int)
