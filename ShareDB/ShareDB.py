@@ -1,3 +1,17 @@
+# Core import
+import shutil
+import os
+import numbers
+import msgpack
+import cPickle
+import ConfigParser
+import lmdb
+
+# Not core
+import random
+import time
+import multiprocessing
+
 '''
 MIT License
 
@@ -24,37 +38,22 @@ SOFTWARE.
 
 '''
 TODOS
-(1) Bake in support for cPickle serialization
-    - will change packing/unpacking functions
-    - will change config storage
-    - default serialization ?
-(2) Do we need compaction function?
-(3) Rethink all test cases
-(4) Seperate Test and Benchmark modules
-(5) Finish docs
+DONE (1) Basic Lint checkups
+DONE (2) Bake in support for cPickle serialization
+        - will change packing/unpacking functions
+        - will change config storage
+        - default serialization ?
+(3) Do we need compaction function?
+(4) Rethink all test cases
+(5) Seperate Test and Benchmark modules
+(6) Finish docs
 '''
 
-# Not core
-import random
-import time
-import sys
-import multiprocessing
-import collections
-
-# Core imports
-import shutil
-import os
-import uuid
-import numbers
-import msgpack
-import cPickle
-import ConfigParser
-import lmdb
 
 class ShareDB(object):
     '''
-    ShareDB is a lightweight on-disk key-value store with a  dictionary-like interface
-    built on top of LMDB and is intended to replace a python dictionary when
+    ShareDB is a lightweight on-disk key-value store with a dictionary-like interface
+    built on top of LMDB and is intended to replace the built-in python dictionary when
 
     (1) the amount of data to store will not fit in main memory,
     (2) the data needs to persist on disk for later reuse,
@@ -62,20 +61,27 @@ class ShareDB(object):
     (4) keys and values are msgpack/pickle compliant, and
     (5) all key-value operations must be fast with minimal overhead.
 
-    ShareDB operates via an LMDB structure in an optimistic manner for reading and 
+    ShareDB operates via an LMDB structure in an optimistic manner for reading and
     writing data. As long as you maintain a one-writer-many-reader workflow there
-    should not be any problem. Sending a ShareDB instance from parent to children 
-    processes is fine, or you may open parallel instances in children processes 
-    for reading. Parallel writes made in children processes are not guaranteed to 
+    should not be any problem. Sending a ShareDB instance from parent to children
+    processes is fine, or you may open parallel instances in children processes
+    for reading. Parallel writes made in children processes are not guaranteed to
     be reflected back in the original ShareDB instance, and may corrupt instance.
     '''
 
-    def __init__(self, path=None, reset=False, readers=100, buffer_size=10**5, map_size=10**12):
+    def __init__(self,
+        path=None,
+        reset=False,
+        serial='msgpack',
+        readers=100,
+        buffer_size=10**5,
+        map_size=10**12):
         '''
         ShareDB constructor.
 
         :: path        - a/path/to/a/directory/to/persist/the/data (default=None)
         :: reset       - boolean, if True - delete and recreate path following parameters (default=False)
+        :: serial      - string, must be either 'msgpack' or 'cPickle' (default='msgpack')
         :: readers     - max no. of processes that'll read data in parallel (default=40 processes)
         :: buffer_size - max no. of commits after which a sync is triggered (default=100,000)
         :: map_size    - max amount of bytes to allocate for storage (default=1TB)
@@ -86,6 +92,7 @@ class ShareDB(object):
         Traceback (most recent call last):
         Exception: Given path=None of <type 'NoneType'>,
                          reset=False of <type 'bool'>,
+                         serial=msgpack of <type 'str'>,
                          readers=100 of <type 'int'>,
                          buffer_size=100000 of <type 'int'>,
                          map_size=1000000000000 of <type 'int'>,
@@ -94,6 +101,7 @@ class ShareDB(object):
         Traceback (most recent call last):
         Exception: Given path=True of <type 'bool'>,
                          reset=False of <type 'bool'>,
+                         serial=msgpack of <type 'str'>,
                          readers=100 of <type 'int'>,
                          buffer_size=100000 of <type 'int'>,
                          map_size=1000000000000 of <type 'int'>,
@@ -102,6 +110,7 @@ class ShareDB(object):
         Traceback (most recent call last):
         Exception: Given path=123 of <type 'int'>,
                          reset=False of <type 'bool'>,
+                         serial=msgpack of <type 'str'>,
                          readers=100 of <type 'int'>,
                          buffer_size=100000 of <type 'int'>,
                          map_size=1000000000000 of <type 'int'>,
@@ -110,6 +119,7 @@ class ShareDB(object):
         Traceback (most recent call last):
         Exception: Given path=/22.f.ShareDB/ of <type 'str'>,
                          reset=False of <type 'bool'>,
+                         serial=msgpack of <type 'str'>,
                          readers=100 of <type 'int'>,
                          buffer_size=100000 of <type 'int'>,
                          map_size=1000000000000 of <type 'int'>,
@@ -118,6 +128,7 @@ class ShareDB(object):
         Traceback (most recent call last):
         Exception: Given path=./test_init.ShareDB/ of <type 'str'>,
                          reset=True of <type 'bool'>,
+                         serial=msgpack of <type 'str'>,
                          readers=XYZ of <type 'str'>,
                          buffer_size=100 of <type 'int'>,
                          map_size=1000 of <type 'int'>,
@@ -141,8 +152,8 @@ class ShareDB(object):
         '''
         try:
             # Format path correctly
-            path  = self._trim_suffix(given_str=path, suffix='/')
-            path  = self._trim_suffix(given_str=path, suffix='.ShareDB')
+            path = self._trim_suffix(given_str=path, suffix='/')
+            path = self._trim_suffix(given_str=path, suffix='.ShareDB')
             path += '.ShareDB/'
 
             # Reset ShareDB instance if necessary
@@ -154,20 +165,29 @@ class ShareDB(object):
                 os.makedirs(path)
 
             # Create configuration if absent
-            if not os.path.exists(path+'ShareDB.config'):
-                config = self._store_config(path, buffer_size, map_size, readers)
+            if not os.path.exists(path + 'ShareDB.config'):
+                config = self._store_config(
+                    path, serial, buffer_size, map_size, readers)
             # Otherwise load configuration
             else:
                 config = self._load_config(path)
 
             # Setup ShareDB instance
-            self.PATH     = path                                        # Path to ShareDB
-            self.ALIVE    = True                                        # Instance is alive
-            self.PARALLEL = config.getint('ShareDB Config', 'PARALLEL') # Number of processes reading in parallel
-            self.BCSIZE   = config.getint('ShareDB Config', 'BCSIZE')   # Trigger sync after this many items inserted
-            self.BQSIZE   = config.getint('ShareDB Config', 'BQSIZE')   # Approx. no. of items to sync in ShareDB
-            self.MSLIMIT  = config.getint('ShareDB Config', 'MSLIMIT')  # Memory map size, maybe larger than RAM
-            self.DB = lmdb.open(self.PATH,
+            self.PATH = path  # Path to ShareDB
+            self.ALIVE = True # Instance is alive
+            # Serialization to use for (un)packing keys and values
+            self.PACK, self.UNPACK = self._get_serialization_functions(
+                serial=config.get('ShareDB Config', 'SERIAL'))
+            # Number of processes reading in parallel
+            self.PARALLEL = config.getint('ShareDB Config', 'PARALLEL')
+            # Trigger sync after this many items inserted
+            self.BCSIZE = config.getint('ShareDB Config', 'BCSIZE')
+            # Approx. no. of items to sync in ShareDB
+            self.BQSIZE = config.getint('ShareDB Config', 'BQSIZE')
+            # Memory map size, maybe larger than RAM
+            self.MSLIMIT = config.getint('ShareDB Config', 'MSLIMIT')
+            self.DB = lmdb.open(
+                self.PATH,
                 subdir=True,
                 map_size=self.MSLIMIT,
                 create=True,
@@ -178,14 +198,24 @@ class ShareDB(object):
                 max_dbs=0,
                 lock=True
             )
-                
+
         except Exception as E:
-            raise Exception('''Given path={} of {},
+            raise Exception(
+                '''Given path={} of {},
                  reset={} of {},
+                 serial={} of {},
                  readers={} of {},
                  buffer_size={} of {},
                  map_size={} of {},
-                 raised: {}'''.format(path, type(path), reset, type(reset), readers, type(readers), buffer_size, type(buffer_size), map_size, type(map_size), E)
+                 raised: {}'''.format(
+                    path,        type(path),
+                    reset,       type(reset),
+                    serial,      type(serial),
+                    readers,     type(readers),
+                    buffer_size, type(buffer_size),
+                    map_size,    type(map_size),
+                    E
+                )
             )
 
     def _trim_suffix(self, given_str, suffix):
@@ -205,32 +235,48 @@ class ShareDB(object):
         elif os.path.exists(path):
             os.remove(path)
 
-    def _store_config(self, path, buffer_size, map_size, readers):
+    def _store_config(self, path, serial, buffer_size, map_size, readers):
         '''
         Internal helper funtion to create ShareDB configuration file.
         '''
         config = ConfigParser.RawConfigParser()
         config.add_section('ShareDB Config')
+        config.set('ShareDB Config', 'SERIAL',   serial)
         config.set('ShareDB Config', 'PARALLEL', readers)
         config.set('ShareDB Config', 'BCSIZE',   buffer_size)
         config.set('ShareDB Config', 'BQSIZE',   0)
         config.set('ShareDB Config', 'MSLIMIT',  map_size)
-        with open(path+'ShareDB.config', 'w') as config_file:
+        with open(path + 'ShareDB.config', 'w') as config_file:
             config.write(config_file)
         return config
+
+    def _get_serialization_functions(self, serial):
+        '''
+        Internal helper function to decide (un)packing functions.
+        '''
+        if not serial in ['msgpack', 'cPickle']:
+            raise Exception(
+                'serial must be \'msgpack\' or \'cPickle\' not {}'.format(serial))
+        if serial == 'msgpack':
+            PACK = msgpack.packb
+            UNPACK = msgpack.unpackb
+        if serial == 'cPickle':
+            PACK = cPickle.dumps
+            UNPACK = cPickle.loads
+        return PACK, UNPACK
 
     def _load_config(self, path):
         '''
         Internal helper funtion to load ShareDB configuration file.
         '''
         config = ConfigParser.RawConfigParser()
-        config.read(path+'ShareDB.config')
+        config.read(path + 'ShareDB.config')
         return config
 
     def __repr__(self):
         '''
         Pythonic dunder function to return a string representation of ShareDB instance.
-        
+
         __repr__ test cases.
 
         >>> myDB = ShareDB(path='./test_repr.ShareDB', reset=True)
@@ -255,7 +301,7 @@ class ShareDB(object):
 
     def _get_packed_key(self, key):
         '''
-        Internal helper function to try and msgpack given key.
+        Internal helper function to try and pack given key.
 
         :: key - a valid key to be inserted/updated in ShareDB
 
@@ -274,16 +320,18 @@ class ShareDB(object):
         >>> myDB.drop()
         '''
         if key is None:
-            raise Exception('ShareDB cannot use {} objects as keys or values'.format(type(None)))
+            raise Exception(
+                'ShareDB cannot use {} objects as keys or values'.format(type(None)))
         try:
-            key = msgpack.packb(key)
+            key = self.PACK(key)
         except Exception as E:
-            raise Exception('Given key={} of {}, raised: {}'.format(key, type(key), E))
+            raise Exception(
+                'Given key={} of {}, raised: {}'.format(key, type(key), E))
         return key
 
     def _get_unpacked_key(self, key):
         '''
-        Internal helper function to try and un-msgpack given key.
+        Internal helper function to try and unpack given key.
 
         :: key - a valid key to be inserted/updated in ShareDB
 
@@ -296,16 +344,18 @@ class ShareDB(object):
         >>> myDB.drop()
         '''
         if key is None:
-            raise Exception('ShareDB cannot use {} objects as keys or values'.format(type(None)))
+            raise Exception(
+                'ShareDB cannot use {} objects as keys or values'.format(type(None)))
         try:
-            key = msgpack.unpackb(key)
+            key = self.UNPACK(key)
         except Exception as E:
-            raise Exception('Given key={} of {}, raised: {}'.format(key, type(key), E))
+            raise Exception(
+                'Given key={} of {}, raised: {}'.format(key, type(key), E))
         return key
 
     def _get_packed_val(self, val):
         '''
-        Internal helper function to try and msgpack given value.
+        Internal helper function to try and pack given value.
 
         :: val - a valid value/object associated with given key
 
@@ -324,16 +374,18 @@ class ShareDB(object):
         >>> myDB.drop()
         '''
         if val is None:
-            raise Exception('ShareDB cannot use {} objects as keys or values'.format(type(None)))
+            raise Exception(
+                'ShareDB cannot use {} objects as keys or values'.format(type(None)))
         try:
-            val = msgpack.packb(val)
+            val = self.PACK(val)
         except Exception as E:
-            raise Exception('Given value={} of {}, raised: {}'.format(val, type(val), E))
+            raise Exception(
+                'Given value={} of {}, raised: {}'.format(val, type(val), E))
         return val
 
     def _get_unpacked_val(self, val):
         '''
-        Internal helper function to try and un-msgpack given value.
+        Internal helper function to try and unpack given value.
 
         :: val - a valid value/object associated with given key
 
@@ -346,11 +398,13 @@ class ShareDB(object):
         >>> myDB.drop()
         '''
         if val is None:
-            raise Exception('ShareDB cannot use {} objects as keys or values'.format(type(None)))
+            raise Exception(
+                'ShareDB cannot use {} objects as keys or values'.format(type(None)))
         try:
-            val = msgpack.unpackb(val)
+            val = self.UNPACK(val)
         except Exception as E:
-            raise Exception('Given value={} of {}, raised: {}'.format(val, type(val), E))
+            raise Exception(
+                'Given value={} of {}, raised: {}'.format(val, type(val), E))
         return val
 
     def _trigger_sync(self):
@@ -416,10 +470,11 @@ class ShareDB(object):
         '''
         with self.DB.begin(write=True) as kvsetter:
             try:
-                for key,val in kv_iter:
+                for key, val in kv_iter:
                     self._insert_kv_in_txn(key=key, val=val, txn=kvsetter)
             except Exception as E:
-                raise Exception('Given kv_iter={} of {}, raised: {}'.format(kv_iter, type(kv_iter), E))
+                raise Exception('Given kv_iter={} of {}, raised: {}'.format(
+                    kv_iter, type(kv_iter), E))
         return self
 
     def set(self, key, val):
@@ -476,15 +531,15 @@ class ShareDB(object):
 
         length test cases.
 
-        >>> myDB = ShareDB(path='./test_length', reset=True)
-        >>> for i in range(500, 600): myDB[i] = 2.0*i
+        >>> myDB = ShareDB(path='./test_length', reset=True, serial='cPickle')
+        >>> for i in range(500, 600): myDB[i] = set([2.0*i])
         >>> len(myDB)
         100
         >>> myDB.sync().clear().length()
         0
         >>> myDB.drop()
         '''
-        return int(self.DB.stat()['entries']) 
+        return int(self.DB.stat()['entries'])
 
     def __len__(self):
         '''
@@ -524,13 +579,14 @@ class ShareDB(object):
     def _get_unpacked_val_on_disk(self, key, txn, packed=False, default=None):
         '''
         Internal helper function to return the unpacked value associated with given key.
-        
+
         :: key     - a valid key to query ShareDB for associated value
         :: txn     - a transaction interface for query
         :: packed  - boolean, if True - will attempt packing key (default=False)
         :: default - a default value to return when key is absent (default=None)
         '''
-        val = self._get_val_on_disk(key=key, txn=txn, packed=packed, default=default)
+        val = self._get_val_on_disk(
+            key=key, txn=txn, packed=packed, default=default)
         if val is default:
             return default
         return self._get_unpacked_val(val)
@@ -543,7 +599,7 @@ class ShareDB(object):
         :: default - a default value to return when key is absent (default=None)
 
         get test cases.
-        
+
         >>> myDB = ShareDB(path='./test_get.ShareDB', reset=True)
         >>> for i in range(100): myDB[i] = i**0.5
         >>> len(myDB)
@@ -552,16 +608,17 @@ class ShareDB(object):
         >>> for i in range(100): assert myDB.get(i) == i**0.5
         >>> myDB.get(key=81)
         9.0
-        >>> myDB.get(key=202, default='SENTIENTDEFAULT')
-        'SENTIENTDEFAULT'
+        >>> myDB.get(key=202, default='SENTINEL')
+        'SENTINEL'
         >>> myDB.clear()
         ShareDB instantiated from ./test_get.ShareDB/.
-        >>> myDB.get(key=81, default='SENTIENTDEFAULT')
-        'SENTIENTDEFAULT'
+        >>> myDB.get(key=81, default='SENTINEL')
+        'SENTINEL'
         >>> myDB.drop()
         '''
         with self.DB.begin(write=False) as kvgetter:
-            val = self._get_unpacked_val_on_disk(key=key, txn=kvgetter, packed=False, default=default)
+            val = self._get_unpacked_val_on_disk(
+                key=key, txn=kvgetter, packed=False, default=default)
         return val
 
     def __getitem__(self, key):
@@ -581,12 +638,18 @@ class ShareDB(object):
         >>> myDB[49]
         7.0
         >>> myDB[49.0]
+        Traceback (most recent call last):
+        KeyError: "key=49.0 of <type 'float'> is absent"
         >>> myDB[set([49.0])]
         Traceback (most recent call last):
         Exception: Given key=set([49.0]) of <type 'set'>, raised: can't serialize set([49.0])
         >>> myDB.drop()
         '''
-        return self.get(key=key, default=None)
+        val = self.get(key=key, default=None)
+        if val is None:
+            raise KeyError(
+                'key={} of {} is absent'.format(key, type(key)))
+        return val
 
     def multiget(self, key_iter, default=None):
         '''
@@ -612,9 +675,11 @@ class ShareDB(object):
         with self.DB.begin(write=False) as kvgetter:
             try:
                 for key in key_iter:
-                    yield self._get_unpacked_val_on_disk(key=key, txn=kvgetter, packed=False, default=default)
+                    yield self._get_unpacked_val_on_disk(
+                        key=key, txn=kvgetter, packed=False, default=default)
             except Exception as E:
-                raise Exception('Given key_iter={} of {}, raised: {}'.format(key_iter, type(key_iter), E))
+                raise Exception('Given key_iter={} of {}, raised: {}'.format(
+                    key_iter, type(key_iter), E))
 
     def has_key(self, key):
         '''
@@ -638,11 +703,12 @@ class ShareDB(object):
         >>> myDB.drop()
         '''
         with self.DB.begin(write=False) as kvgetter:
-            val = self._get_val_on_disk(key=key, txn=kvgetter, packed=False, default=None)
+            val = self._get_val_on_disk(
+                key=key, txn=kvgetter, packed=False, default=None)
         if val is None:
             return False
         return True
-    
+
     def __contains__(self, key):
         '''
         Pythonic dunder function to check existence of given key in ShareDB.
@@ -651,7 +717,7 @@ class ShareDB(object):
 
         ___contain___ test cases.
 
-        >>> myDB = ShareDB(path='./test_contains', reset=True)
+        >>> myDB = ShareDB(path='./test_contains', reset=True, serial='cPickle')
         >>> for i in range(100): myDB[i] = [i**0.5, i**2]
         >>> 95 in myDB
         True
@@ -672,7 +738,7 @@ class ShareDB(object):
         >>> 64 in myDB.multiset(((i,[i**0.5, i**2.0]) for i in range(100)))
         True
         >>> myDB.drop()
-        '''        
+        '''
         return self.has_key(key=key)
 
     # This block onwards need refactoring, tests and comments
@@ -688,17 +754,18 @@ class ShareDB(object):
         '''
         if not packed:
             key = self._get_packed_key(key=key)
-        if opr == 'pop':
+        if opr == 'del':
+            txn.delete(key=key)
+            val = None
+        elif opr == 'pop':
             try:
                 val = self._get_unpacked_val(val=txn.pop(key=key))
             except:
                 key = self._get_unpacked_key(key=key)
                 raise KeyError('key={} of {} is absent'.format(key, type(key)))
-        elif opr == 'del':
-            txn.delete(key=key)
-            val = None
         else:
-            raise Exception('opr must be \'del\' or \'pop\' not {}'.format(opr))
+            raise Exception(
+                'opr must be \'del\' or \'pop\' not {}'.format(opr))
         self.BQSIZE += 1
         self._trigger_sync()
         return val
@@ -708,10 +775,10 @@ class ShareDB(object):
         User function to remove all key-value pairs specified in the iterable of keys.
 
         :: key_iter - a valid iterable of keys to be deleted from ShareDB
-        
+
         multiremove test cases.
 
-        >>> myDB = ShareDB(path='./test_multiremove.ShareDB', reset=True)
+        >>> myDB = ShareDB(path='./test_multiremove.ShareDB', reset=True, serial='cPickle')
         >>> for i in range(100): myDB[i] = i**2
         >>> len(myDB)
         100
@@ -726,9 +793,11 @@ class ShareDB(object):
         with self.DB.begin(write=True) as keydeler:
             try:
                 for key in key_iter:
-                    self._del_pop_from_disk(key=key, txn=keydeler, opr='del', packed=False)
+                    self._del_pop_from_disk(
+                        key=key, txn=keydeler, opr='del', packed=False)
             except Exception as E:
-                raise Exception('Given key_iter={} of {}, raised: {}'.format(key_iter, type(key_iter), E))
+                raise Exception('Given key_iter={} of {}, raised: {}'.format(
+                    key_iter, type(key_iter), E))
         return self
 
     def remove(self, key):
@@ -736,7 +805,7 @@ class ShareDB(object):
         User function to remove a key-value pair.
 
         :: key - a valid key to be deleted from ShareDB
-        
+
         remove test cases.
 
         >>> myDB = ShareDB(path='./test_remove.ShareDB', reset=True)
@@ -752,7 +821,8 @@ class ShareDB(object):
         >>> myDB.drop()
         '''
         with self.DB.begin(write=True) as keydeler:
-            self._del_pop_from_disk(key=key, txn=keydeler, opr='del', packed=False)
+            self._del_pop_from_disk(
+                key=key, txn=keydeler, opr='del', packed=False)
         return self
 
     def __delitem__(self, key):
@@ -760,7 +830,7 @@ class ShareDB(object):
         Pythonic dunder function to remove a key-value pair.
 
         :: key - a valid key to be deleted from ShareDB
-        
+
         __delitem__ test cases.
 
         >>> myDB = ShareDB(path='./test_delitem.ShareDB', reset=True)
@@ -781,7 +851,7 @@ class ShareDB(object):
         User function to return an iterator of popped values for a given iterable of keys.
 
         :: key_iter - a valid iterable of keys to be deleted from ShareDB
-        
+
         multipop test cases.
 
         >>> myDB = ShareDB(path='./test_multipop.ShareDB', reset=True)
@@ -806,16 +876,19 @@ class ShareDB(object):
         with self.DB.begin(write=True) as keypopper:
             try:
                 for key in key_iter:
-                    yield self._del_pop_from_disk(key=key, txn=keypopper, opr='pop', packed=False)
+                    yield self._del_pop_from_disk(
+                        key=key, txn=keypopper, opr='pop', packed=False)
             except Exception as E:
-                raise Exception('Given key_iter={} of {}, raised: {}'.format(key_iter, type(key_iter), E))
+                raise Exception(
+                    'Given key_iter={} of {}, raised: {}'.format(
+                        key_iter, type(key_iter), E))
 
     def pop(self, key, default=None):
         '''
         User function to pop a key and return its value.
 
         :: key - a valid key to be deleted from ShareDB
-        
+
         pop test cases.
 
         >>> myDB = ShareDB(path='./test_pop.ShareDB', reset=True)
@@ -836,10 +909,15 @@ class ShareDB(object):
         >>> myDB.drop()
         '''
         with self.DB.begin(write=True) as keypopper:
-            val = self._del_pop_from_disk(key=key, txn=keypopper, opr='pop', packed=False)
+            val = self._del_pop_from_disk(
+                key=key, txn=keypopper, opr='pop', packed=False)
         return val
 
-    def _iter_on_disk_kv(self, yield_key=False, unpack_key=False, yield_val=False, unpack_val=False):
+    def _iter_on_disk_kv(self,
+        yield_key=False,
+        unpack_key=False,
+        yield_val=False,
+        unpack_val=False):
         '''
         Internal helper function to iterate over key and/or values in ShareDB.
 
@@ -867,7 +945,7 @@ class ShareDB(object):
         '''
         with self.DB.begin(write=False) as kviter:
             with kviter.cursor() as kvcursor:
-                for key,val in kvcursor:
+                for key, val in kvcursor:
                     if unpack_key:
                         key = self._get_unpacked_key(key=key)
                     if unpack_val:
@@ -877,9 +955,10 @@ class ShareDB(object):
                     elif yield_val and not yield_key:
                         yield val
                     elif yield_key and yield_val:
-                        yield key,val
+                        yield key, val
                     else:
-                        raise Exception('All four params to _iter_on_disk_kv cannot be False or None')
+                        raise Exception(
+                            'All four params to _iter_on_disk_kv cannot be False or None')
 
     def items(self):
         '''
@@ -900,7 +979,8 @@ class ShareDB(object):
         False
         >>> myDB.drop()
         '''
-        return self._iter_on_disk_kv(yield_key=True, unpack_key=True, yield_val=True, unpack_val=True)
+        return self._iter_on_disk_kv(
+            yield_key=True, unpack_key=True, yield_val=True, unpack_val=True)
 
     def keys(self):
         '''
@@ -921,7 +1001,8 @@ class ShareDB(object):
         False
         >>> myDB.drop()
         '''
-        return self._iter_on_disk_kv(yield_key=True, unpack_key=True)
+        return self._iter_on_disk_kv(
+            yield_key=True, unpack_key=True)
 
     def values(self):
         '''
@@ -942,13 +1023,14 @@ class ShareDB(object):
         False
         >>> myDB.drop()
         '''
-        return self._iter_on_disk_kv(yield_val=True, unpack_val=True)
+        return self._iter_on_disk_kv(
+            yield_val=True, unpack_val=True)
 
     def multipopitem(self, num_items=None):
         '''
         User function to pop over key-value pairs in ShareDB.
 
-        :: num_items - an integer specifying the number of items 
+        :: num_items - an integer specifying the number of items to pop
 
         multpopitem test cases.
 
@@ -970,20 +1052,24 @@ class ShareDB(object):
         '''
         # Check if num_items is valid, and set up accordingly
         if not isinstance(num_items, numbers.Real):
-            raise Exception('num_items={}, of {} must be an integer/long/float'.format(num_items, type(num_items)))
+            raise Exception(
+                'num_items={}, of {} must be an integer/long/float'.format(
+                    num_items, type(num_items)))
         else:
             num_items = min(num_items, self.length())
 
         # Iterate over ShareDB and load num_item keys in packed state
         curr_key  = self._iter_on_disk_kv(yield_key=True, unpack_key=False)
-        item_keys = []        
-        while len(item_keys) < num_items: item_keys.append(curr_key.next())
+        item_keys = []
+        while len(item_keys) < num_items:
+            item_keys.append(curr_key.next())
 
         # Pop packed keys in item_keys, and yield the unapacked items
         with self.DB.begin(write=True) as itempopper:
             for item_key in item_keys:
-                yield self._get_unpacked_key(key=item_key), self._del_pop_from_disk(key=item_key, txn=itempopper, opr='pop', packed=True)
-            item_keys = None
+                yield self._get_unpacked_key(key=item_key), \
+                      self._del_pop_from_disk(
+                        key=item_key, txn=itempopper, opr='pop', packed=True)
 
     def popitem(self):
         '''
@@ -1003,8 +1089,10 @@ class ShareDB(object):
         curr_key = self._iter_on_disk_kv(yield_key=True, unpack_key=False)
         item_key = curr_key.next()
         with self.DB.begin(write=True) as itempopper:
-            key,val = self._get_unpacked_key(key=item_key), self._del_pop_from_disk(key=item_key, txn=itempopper, opr='pop', packed=True)
-        return key,val
+            key, val = self._get_unpacked_key(key=item_key), \
+                       self._del_pop_from_disk(
+                        key=item_key, txn=itempopper, opr='pop', packed=True)
+        return key, val
 
     def sync(self):
         '''
@@ -1089,7 +1177,7 @@ class ShareDB(object):
         User function to delete a ShareDB instance.
 
         drop test cases.
-        
+
         >>> myDB = ShareDB(path='./test_drop.ShareDB', reset=True)
         >>> for i in range(10): myDB[range(i, i+5)] = range(i+5, i+10)
         >>> len(myDB)
@@ -1113,8 +1201,10 @@ class ShareDB(object):
             self._clear_path(self.PATH)
         return None
 
+
 def get_string(length):
     return ''.join(random.choice('ATGC') for _ in xrange(length))
+
 
 def populate_dict(dictionary, items):
     population = []
@@ -1133,8 +1223,9 @@ def populate_dict(dictionary, items):
         #     dictionary.multiset(local_cach.iteritems())
         #     local_cach = {}
         if random.random() < 0.001:
-            print 'WRITER - throughput @ {} writes/second | Filled {}'.format(i/total_time, len(dictionary))
+            print 'WRITER - throughput @ {} writes/second | Filled {}'.format(i / total_time, len(dictionary))
     return population
+
 
 def worker_process(path, population, pid):
     print 'ENTERED PID {} .. will PROCESS {} items'.format(pid, len(population))
@@ -1144,7 +1235,7 @@ def worker_process(path, population, pid):
     total_time = 0.
     # random.shuffle(population)
     for i, item in enumerate(population):
-        t0  = time.time()
+        t0 = time.time()
         # assert item in dictionary
         val = dictionary[item]
         # assert isinstance(val, int)
@@ -1155,11 +1246,13 @@ def worker_process(path, population, pid):
         # assert dictionary[item] == val+1
         total_time += time.time() - t0
         if random.random() < 0.001:
-            print 'READER {} - throughput @ {} queries/second | Remaining {}'.format(pid, i/total_time, len(dictionary)-i-1)
+            print 'READER {} - throughput @ {} queries/second | Remaining {}'.format(pid, i / total_time, len(dictionary) - i - 1)
             # time.sleep(0.01)
 
+
 def main():
-    dictionary = ShareDB(path='./test.ShareDB', reset=True) # vedis.Vedis('./test.ShareDB')
+    # vedis.Vedis('./test.ShareDB')
+    dictionary = ShareDB(path='./test.ShareDB', reset=True)
     # print dir(dictionary.DB.sync)
     # sys.exit(0)
     # dictionary[['KEY']] = 'SOME_VALUE'
@@ -1171,7 +1264,7 @@ def main():
     # dictionary.remove('NAME')
     # assert not 'NAME' in dictionary
     # assert 'SURNAME' in dictionary
-    # 
+    #
     # print dictionary.BUFFER
     population = populate_dict(dictionary=dictionary, items=1000000)
     # print len(dictionary.BUFFER)
@@ -1195,7 +1288,8 @@ def main():
 
     workers = []
     for pid in xrange(7):
-        worker = multiprocessing.Process(target=worker_process, args=('./test.ShareDB', population, pid, ))
+        worker = multiprocessing.Process(
+            target=worker_process, args=('./test.ShareDB', population, pid, ))
         workers.append(worker)
     for worker in workers:
         worker.start()
@@ -1219,9 +1313,11 @@ def main():
 
     # print '\n ANALYSIS FINISHED \n'
 
+
 def run_tests():
     import doctest
     doctest.testmod()
+
 
 if __name__ == '__main__':
     # main()

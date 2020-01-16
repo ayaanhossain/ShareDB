@@ -23,4 +23,4 @@ SOFTWARE.
 '''
 
 __version__ = '0.0.a.0.0'
-__author__  = 'Ayaan Hossain'
+__author__ = 'Ayaan Hossain'
