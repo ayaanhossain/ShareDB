@@ -1,6 +1,4 @@
-﻿```
 ![ShareDB](./logo.png)
-```
 ShareDB is a lightweight on-disk key-value store with a dictionary-like interface built on top of LMDB and is intended to replace the built-in python dictionary when
 
  1. the data to store needs to persist on disk for later reuse,
