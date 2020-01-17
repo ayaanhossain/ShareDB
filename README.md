@@ -10,26 +10,19 @@ ShareDB operates via an LMDB structure in an optimistic manner for reading and w
 A sample use case
 
 ### Table of Contents
----
  * [ShareDB in Action](#sharedb-in-action)
  * [Requirements](#requirements)
  * [Installation](#installation)
  * [License and Contribution](#license-and-contribution)
- * [API Reference](#support-and-migration)
+ * [API Reference](#api-reference)
 
 ### ShareDB in Action
----
 
 ### Requirements
----
 
 ### Installation
----
 
 ### License and Contribution
----
 
 ### API Reference
----
-
 
