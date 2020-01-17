@@ -1,3 +1,0 @@
-TODOS
-(1) Finish remaining functions.
-(2) Finish all comments and doctest.
