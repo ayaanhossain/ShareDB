@@ -1,4 +1,6 @@
-﻿## ShareDB
+﻿```
+![ShareDB](logo.png "ShareDB Logo")
+```
 ShareDB is a lightweight on-disk key-value store with a dictionary-like interface built on top of LMDB and is intended to replace the built-in python dictionary when
 
  1. the data to store needs to persist on disk for later reuse,
@@ -10,6 +12,7 @@ ShareDB operates via an LMDB structure in an optimistic manner for reading and w
 A sample use case
 
 ### Table of Contents
+-------------------------------
  * [ShareDB in Action](#sharedb-in-action)
  * [Requirements](#requirements)
  * [Installation](#installation)
