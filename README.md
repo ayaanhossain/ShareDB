@@ -11,7 +11,7 @@ ShareDB operates via an LMDB structure in an optimistic manner for reading and w
 A sample use case
 
 ### Table of Contents
--------------------------------
+---
  * [ShareDB in Action](#sharedb-in-action)
  * [Requirements](#requirements)
  * [Installation](#installation)
