@@ -19,7 +19,7 @@ setup(
     # Link: https://www.python.org/dev/peps/pep-0440/#version-scheme
     version=ShareDB.__version__,
     
-    description='Pythonic key-value store based on LMDB for parallel-read workflows.',
+    description=ShareDB.__doc__,
     
     long_description=long_description,
     

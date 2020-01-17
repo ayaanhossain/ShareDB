@@ -1,27 +1,3 @@
-'''
-MIT License
-
-Copyright (c) 2019 Ayaan Hossain
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-'''
-
 import shutil
 import os
 import numbers
@@ -30,38 +6,51 @@ import cPickle
 import ConfigParser
 import lmdb
 
-'''
-TODOS
-DONE (1) Basic Lint checkups
-DONE (2) Bake in support for cPickle serialization
-        - will change packing/unpacking functions
-        - will change config storage
-        - default serialization ?
-DONE (Not implemented) (3) Do we need compaction function?
-(4) Rethink all test cases
-(5) Seperate Test and Benchmark modules
-(6) Finish docs
-'''
-
 
 class ShareDB(object):
+    __license__ = '''
+    MIT License
+
+    Copyright (c) 2019-2020 Ayaan Hossain
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
     '''
+
+    __doc__ = '''
     ShareDB is a lightweight on-disk key-value store with a dictionary-like interface
     built on top of LMDB and is intended to replace the built-in python dictionary when
 
-    (1) the amount of data to store will not fit in main memory,
-    (2) the data needs to persist on disk for later reuse,
-    (3) the data needs to be read across multiple processes,
-    (4) keys and values are msgpack/pickle compliant, and
-    (5) all key-value operations must be fast with minimal overhead.
+    (1) the data to store needs to persist on disk for later reuse,
+    (2) the data needs to be read across multiple processes with minimal overhead, and 
+    (3) the keys and values can be (de)serialized via msgpack or cPickle.
 
     ShareDB operates via an LMDB structure in an optimistic manner for reading and
-    writing data. As long as you maintain a one-writer-many-reader workflow there
-    should not be any problem. Sending a ShareDB instance from parent to children
-    processes is fine, or you may open parallel instances in children processes
-    for reading. Parallel writes made in children processes are not guaranteed to
-    be reflected back in the original ShareDB instance, and may corrupt instance.
+    writing data. As long as you maintain a one-writer-many-reader workflow everything
+    should be fine. Sending a ShareDB instance from parent to children processes is fine,
+    or you may open the same ShareDB in children processes for reading. Parallel writes
+    made in children processes are not safe; they are not guaranteed to be written,
+    and may corrupt instance.
     '''
+
+    __version__ = '0.1.6'
+
+    __author__ = 'Ayaan Hossain'
 
     def __init__(self, path=None, reset=False, serial='msgpack', readers=100, buffer_size=10**5, map_size=10**9):
         '''
@@ -248,7 +237,7 @@ class ShareDB(object):
         '''
         Internal helper function to decide (un)packing functions.
         '''
-        if not serial in ['msgpack', 'cPickle']:
+        if serial not in ['msgpack', 'cPickle']:
             raise Exception(
                 'serial must be \'msgpack\' or \'cPickle\' not {}'.format(serial))
         if serial == 'msgpack':
@@ -654,12 +643,12 @@ class ShareDB(object):
 
         multiget test cases.
 
-        >>> myDB = ShareDB(path='./multiget.ShareDB', reset=True)
+        >>> myDB = ShareDB(path='./test_multiget.ShareDB', reset=True)
         >>> for i in range(100): myDB[i] = i**2
         >>> len(myDB)
         100
         >>> myDB.close()
-        >>> myDB = ShareDB(path='./multiget.ShareDB', reset=False)
+        >>> myDB = ShareDB(path='./test_multiget.ShareDB', reset=False)
         >>> len(list(myDB.multiget(key_iter=range(100), default=None))) == 100
         True
         >>> myDB.multiget(key_iter=range(100, 110), default=False).next()
@@ -753,7 +742,7 @@ class ShareDB(object):
         elif opr == 'pop':
             try:
                 val = self._get_unpacked_val(val=txn.pop(key=key))
-            except:
+            except Exception:
                 key = self._get_unpacked_key(key=key)
                 raise KeyError(
                     'key={} of {} is absent'.format(key, type(key)))
@@ -1186,9 +1175,11 @@ class ShareDB(object):
             self._clear_path(self.PATH)
         return None
 
+
 def main():
     import doctest
     doctest.testmod()
+
 
 if __name__ == '__main__':
     main()
