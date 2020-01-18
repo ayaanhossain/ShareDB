@@ -18,31 +18,32 @@ A sample use case
  * [API Reference](#api-reference)
 
 ### ShareDB in Action
-
-    >>> from ShareDB import ShareDB           # Easy import
-    >>> print(ShareDB.__version__)            # Check version
-    0.1.6
-    >>> myDB = ShareDB(path='./test.ShareDB') # Store ShareDB locally
-    >>> myDB['Name'] = ['Ayaan Hossain']      # Insert information
-    >>> myDB.get(key='Name')                  # Retrieve values
-    ['Ayaan Hossain']
-    >>> # Insert/update multiple items while being pythonic!
-    >>> len(myDB.multiset(kv_iter=zip(range(0, 10), range(10, 20))).sync())
-    11
-    >>> 7 in myDB                             # Membership queries work
-    True
-    >>> myDB['non-existent key']              # KeyError on invalid get as expected
-    Traceback (most recent call last):
-    ...
-    KeyError: "key=non-existent key of <type 'str'> is absent"
-    >>> myDB.pop(7)                           # Pop a key just like a dictionary!
-	17
-	>>> list(myDB.multipopitem(num_items=5))  # Or, pop as many items as you need
-    [(0, 10), (1, 11), (2, 12), (3, 13), (4, 14)]
-    >>> myDB.clear().length()                 # Remove everything if you must
-    0
-    >>> myDB.drop()                           # Close/delete when you're done!
-    True
+```python
+>>> from ShareDB import ShareDB           # Easy import
+>>> print(ShareDB.__version__)            # Check version
+0.1.6
+>>> myDB = ShareDB(path='./test.ShareDB') # Store ShareDB locally
+>>> myDB['Name'] = ['Ayaan Hossain']      # Insert information
+>>> myDB.get(key='Name')                  # Retrieve values
+['Ayaan Hossain']
+>>> # Insert/update multiple items while being pythonic!
+>>> len(myDB.multiset(kv_iter=zip(range(0, 10), range(10, 20))).sync())
+11
+>>> 7 in myDB                             # Membership queries work
+True
+>>> myDB['non-existent key']              # KeyError on invalid get as expected
+Traceback (most recent call last):
+...
+KeyError: "key=non-existent key of <type 'str'> is absent"
+>>> myDB.pop(7)                           # Pop a key just like a dictionary!
+17
+>>> list(myDB.multipopitem(num_items=5))  # Or, pop as many items as you need
+[(0, 10), (1, 11), (2, 12), (3, 13), (4, 14)]
+>>> myDB.clear().length()                 # Remove everything if you must
+0
+>>> myDB.drop()                           # Close/delete when you're done!
+True
+```
 
 ### Requirements
 
