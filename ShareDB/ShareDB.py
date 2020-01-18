@@ -34,7 +34,7 @@ class ShareDB(object):
 
     __doc__ = '''
     ShareDB is a lightweight on-disk key-value store with a dictionary-like interface
-    built on top of LMDB and is intended to replace the built-in python dictionary when
+    built on top of LMDB and is intended to replace a built-in python dictionary when
 
     (1) the data to store needs to persist on disk for later reuse,
     (2) the data needs to be read across multiple processes with minimal overhead, and 
@@ -135,6 +135,7 @@ class ShareDB(object):
         >>> len(myDB) == 0
         True
         >>> myDB.drop()
+        True
         '''
         try:
             # Format path correctly
@@ -266,6 +267,7 @@ class ShareDB(object):
         >>> myDB
         ShareDB instantiated from ./test_repr.ShareDB/
         >>> myDB.drop()
+        True
         '''
         return 'ShareDB instantiated from {}'.format(self.PATH)
 
@@ -279,6 +281,7 @@ class ShareDB(object):
         >>> myDB
         ShareDB instantiated from ./test_str.ShareDB/
         >>> myDB.drop()
+        True
         '''
         return repr(self)
 
@@ -301,6 +304,7 @@ class ShareDB(object):
         Traceback (most recent call last):
         Exception: ShareDB cannot use <type 'NoneType'> objects as keys or values
         >>> myDB.drop()
+        True
         '''
         if key is None:
             raise Exception(
@@ -325,6 +329,7 @@ class ShareDB(object):
         >>> myDB._get_unpacked_key(key=myDB._get_packed_key(key=test_key)) == test_key
         True
         >>> myDB.drop()
+        True
         '''
         if key is None:
             raise Exception(
@@ -355,6 +360,7 @@ class ShareDB(object):
         Traceback (most recent call last):
         Exception: ShareDB cannot use <type 'NoneType'> objects as keys or values
         >>> myDB.drop()
+        True
         '''
         if val is None:
             raise Exception(
@@ -379,6 +385,7 @@ class ShareDB(object):
         >>> myDB._get_unpacked_val(val=myDB._get_packed_val(val=test_val)) == test_val
         True
         >>> myDB.drop()
+        True
         '''
         if val is None:
             raise Exception(
@@ -438,6 +445,7 @@ class ShareDB(object):
         >>> len(myDB)
         20
         >>> myDB.close()
+        True
         >>> myDB = ShareDB(path='./test_multi_set.ShareDB', reset=False)
         >>> len(myDB)
         20
@@ -450,6 +458,7 @@ class ShareDB(object):
         Traceback (most recent call last):
         Exception: Given key=set([0]) of <type 'set'>, raised: can't serialize set([0])
         >>> myDB.drop()
+        True
         '''
         with self.DB.begin(write=True) as kvsetter:
             try:
@@ -480,6 +489,7 @@ class ShareDB(object):
         >>> myDB.set(key='ANOTHER KEY', val=[1, 2, 3, 4])
         ShareDB instantiated from ./test_set.ShareDB/
         >>> myDB.drop()
+        True
         '''
         with self.DB.begin(write=True) as kvsetter:
             self._insert_kv_in_txn(key=key, val=val, txn=kvsetter)
@@ -505,6 +515,7 @@ class ShareDB(object):
         Traceback (most recent call last):
         Exception: Given key=set(['KEY']) of <type 'set'>, raised: can't serialize set(['KEY'])
         >>> myDB.drop()
+        True
         '''
         return self.set(key=key, val=val)
 
@@ -521,6 +532,7 @@ class ShareDB(object):
         >>> myDB.sync().clear().length()
         0
         >>> myDB.drop()
+        True
         '''
         return int(self.DB.stat()['entries'])
 
@@ -535,6 +547,7 @@ class ShareDB(object):
         >>> len(myDB)
         100
         >>> myDB.close()
+        True
         >>> myDB = ShareDB(path='./test_len.ShareDB', reset=False)
         >>> len(myDB)
         100
@@ -543,6 +556,7 @@ class ShareDB(object):
         >>> len(myDB)
         0
         >>> myDB.drop()
+        True
         '''
         return self.length()
 
@@ -598,6 +612,7 @@ class ShareDB(object):
         >>> myDB.get(key=81, default='SENTINEL')
         'SENTINEL'
         >>> myDB.drop()
+        True
         '''
         with self.DB.begin(write=False) as kvgetter:
             val = self._get_unpacked_val_on_disk(
@@ -617,6 +632,7 @@ class ShareDB(object):
         >>> len(myDB)
         100
         >>> myDB.close()
+        True
         >>> myDB = ShareDB(path='./test_getitem.ShareDB', reset=False)
         >>> myDB[49]
         7.0
@@ -627,6 +643,7 @@ class ShareDB(object):
         Traceback (most recent call last):
         Exception: Given key=set([49.0]) of <type 'set'>, raised: can't serialize set([49.0])
         >>> myDB.drop()
+        True
         '''
         val = self.get(key=key, default=None)
         if val is None:
@@ -648,12 +665,14 @@ class ShareDB(object):
         >>> len(myDB)
         100
         >>> myDB.close()
+        True
         >>> myDB = ShareDB(path='./test_multiget.ShareDB', reset=False)
         >>> len(list(myDB.multiget(key_iter=range(100), default=None))) == 100
         True
         >>> myDB.multiget(key_iter=range(100, 110), default=False).next()
         False
         >>> myDB.drop()
+        True
         '''
         with self.DB.begin(write=False) as kvgetter:
             try:
@@ -685,6 +704,7 @@ class ShareDB(object):
         >>> myDB.multiset(((i,[i**0.5, i**2.0]) for i in range(100))).has_key(49)
         True
         >>> myDB.drop()
+        True
         '''
         with self.DB.begin(write=False) as kvgetter:
             val = self._get_val_on_disk(
@@ -710,6 +730,7 @@ class ShareDB(object):
         >>> 16**6 in myDB
         False
         >>> myDB.close()
+        True
         >>> myDB = ShareDB(path='./test_contains.ShareDB', reset=False)
         >>> 1 in myDB
         True
@@ -722,6 +743,7 @@ class ShareDB(object):
         >>> 64 in myDB.multiset(((i,[i**0.5, i**2.0]) for i in range(100)))
         True
         >>> myDB.drop()
+        True
         '''
         return self.has_key(key=key)
 
@@ -766,12 +788,14 @@ class ShareDB(object):
         >>> len(myDB)
         100
         >>> myDB.close()
+        True
         >>> myDB = ShareDB(path='./test_multiremove.ShareDB', reset=False)
         >>> myDB.multiremove(range(100)).length()
         0
         >>> 0 in myDB
         False
         >>> myDB.drop()
+        True
         '''
         with self.DB.begin(write=True) as keydeler:
             try:
@@ -797,12 +821,14 @@ class ShareDB(object):
         >>> len(myDB)
         100
         >>> myDB.close()
+        True
         >>> myDB = ShareDB(path='./test_remove', reset=False)
         >>> myDB.remove(99).length()
         99
         >>> 99 in myDB
         False
         >>> myDB.drop()
+        True
         '''
         with self.DB.begin(write=True) as keydeler:
             self._del_pop_from_disk(
@@ -822,11 +848,13 @@ class ShareDB(object):
         >>> len(myDB)
         100
         >>> myDB.close()
+        True
         >>> myDB = ShareDB(path='./test_delitem', reset=False)
         >>> del myDB[99]
         >>> 99 in myDB
         False
         >>> myDB.drop()
+        True
         '''
         return self.remove(key=key)
 
@@ -843,6 +871,7 @@ class ShareDB(object):
         >>> len(myDB)
         100
         >>> myDB.close()
+        True
         >>> myDB = ShareDB(path='./test_multipop', reset=False)
         >>> pop_iter = myDB.multipop(range(49, 74))
         >>> pop_iter.next()
@@ -856,6 +885,7 @@ class ShareDB(object):
         Traceback (most recent call last):
         Exception: Given key_iter=[199, 200] of <type 'list'>, raised: "key=199 of <type 'int'> is absent"
         >>> myDB.drop()
+        True
         '''
         with self.DB.begin(write=True) as keypopper:
             try:
@@ -880,6 +910,7 @@ class ShareDB(object):
         >>> len(myDB)
         100
         >>> myDB.close()
+        True
         >>> myDB = ShareDB(path='./test_pop', reset=False)
         >>> myDB.pop(49)
         [7.0]
@@ -891,6 +922,7 @@ class ShareDB(object):
         Traceback (most recent call last):
         KeyError: "key=49 of <type 'int'> is absent"
         >>> myDB.drop()
+        True
         '''
         with self.DB.begin(write=True) as keypopper:
             val = self._del_pop_from_disk(
@@ -914,6 +946,7 @@ class ShareDB(object):
         >>> len(list(myDB._iter_on_disk_kv(1,0,0,0)))
         10
         >>> myDB.close()
+        True
         >>> myDB = ShareDB(path='./test_iter_on_disk_kv', reset=False)
         >>> len(list(myDB._iter_on_disk_kv(0,0,1,0)))
         10
@@ -922,6 +955,7 @@ class ShareDB(object):
         >>> 10 in myDB
         False
         >>> myDB.drop()
+        True
         '''
         with self.DB.begin(write=False) as kviter:
             with kviter.cursor() as kvcursor:
@@ -952,12 +986,14 @@ class ShareDB(object):
         >>> len(list(myDB.items()))
         10
         >>> myDB.close()
+        True
         >>> myDB = ShareDB(path='./test_items', reset=False)
         >>> 9 in myDB
         True
         >>> 10 in myDB
         False
         >>> myDB.drop()
+        True
         '''
         return self._iter_on_disk_kv(
             yield_key=True, unpack_key=True, yield_val=True, unpack_val=True)
@@ -974,12 +1010,14 @@ class ShareDB(object):
         >>> len(list(myDB.keys()))
         10
         >>> myDB.close()
+        True
         >>> myDB = ShareDB(path='./test_keys', reset=False)
         >>> 9 in myDB
         True
         >>> 10 in myDB
         False
         >>> myDB.drop()
+        True
         '''
         return self._iter_on_disk_kv(yield_key=True, unpack_key=True)
 
@@ -995,12 +1033,14 @@ class ShareDB(object):
         >>> len(list(myDB.values()))
         10
         >>> myDB.close()
+        True
         >>> myDB = ShareDB(path='./test_values', reset=False)
         >>> 9 in myDB
         True
         >>> 10 in myDB
         False
         >>> myDB.drop()
+        True
         '''
         return self._iter_on_disk_kv(yield_val=True, unpack_val=True)
 
@@ -1018,6 +1058,7 @@ class ShareDB(object):
         >>> len(list(myDB.keys()))
         10
         >>> myDB.close()
+        True
         >>> myDB = ShareDB(path='./test_multpopitem', reset=False)
         >>> len(list(myDB.multipopitem(num_items='THIS IS NOT A NUMBER')))
         Traceback (most recent call last):
@@ -1027,6 +1068,7 @@ class ShareDB(object):
         >>> 1 in myDB
         False
         >>> myDB.drop()
+        True
         '''
         # Check if num_items is valid, and set up accordingly
         if not isinstance(num_items, numbers.Real):
@@ -1059,10 +1101,12 @@ class ShareDB(object):
         >>> myDB.multiset((i,i**2) for i in range(10, 20)).length()
         10
         >>> myDB.close()
+        True
         >>> myDB = ShareDB(path='./test_popitem', reset=False)
         >>> myDB.popitem()
         (10, 100)
         >>> myDB.drop()
+        True
         '''
         curr_key = self._iter_on_disk_kv(yield_key=True, unpack_key=False)
         item_key = curr_key.next()
@@ -1112,6 +1156,7 @@ class ShareDB(object):
         >>> len(myDB)
         100
         >>> myDB.drop()
+        True
         '''
         self._delete_keys_and_db(drop_DB=False)
         return self
@@ -1127,11 +1172,15 @@ class ShareDB(object):
         >>> len(myDB)
         10
         >>> myDB.close()
+        True
+        >>> myDB.close()
+        False
         >>> myDB = ShareDB(path='./test_close.ShareDB', reset=False)
         >>> len(myDB)
         10
         >>> assert len(myDB.clear()) == 0
         >>> myDB.close()
+        True
         >>> myDB.ALIVE
         False
         >>> 1 in myDB
@@ -1139,12 +1188,14 @@ class ShareDB(object):
         Error: Attempt to operate on closed/deleted/dropped object.
         >>> myDB = ShareDB(path='./test_close.ShareDB', reset=False)
         >>> myDB.drop()
+        True
         '''
         if self.ALIVE:
             self.sync()
             self.DB.close()
             self.ALIVE = False
-        return None
+            return True
+        return False
 
     def drop(self):
         '''
@@ -1159,6 +1210,7 @@ class ShareDB(object):
         >>> len(myDB)
         10
         >>> myDB.drop()
+        True
         >>> myDB.ALIVE
         False
         >>> 0 in myDB
@@ -1168,12 +1220,14 @@ class ShareDB(object):
         >>> len(myDB)
         0
         >>> myDB.drop()
+        True
         '''
         if self.ALIVE:
             self._delete_keys_and_db(drop_DB=True)
             self.close()
             self._clear_path(self.PATH)
-        return None
+            return True
+        return False
 
 
 def main():
