@@ -1,5 +1,6 @@
-<img src="./logo/logo.png"  alt="ShareDB"  height="48.197"  width="214.912"/>
-Pythonic on-disk key-value store based on LMDB for parallel-read workflows.
+<h1 align="center">
+    <img src="./logo/logo.png"  alt="ShareDB"  height="48.197"  width="214.912"/>
+</h1>
 ---
 ShareDB is a lightweight on-disk key-value store with a dictionary-like interface built on top of LMDB and is intended to replace a built-in python dictionary when
 
