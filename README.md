@@ -1,21 +1,22 @@
-﻿![ShareDB](./logo.png)
+﻿![ShareDB](./logo/logo.png)
 ---
 ShareDB is a lightweight on-disk key-value store with a dictionary-like interface built on top of LMDB and is intended to replace a built-in python dictionary when
 
- 1. the data to store needs to persist on disk for later reuse,
+ 1. the key-value store needs to persist on disk for later reuse,
  2. the data needs to be read across multiple processes with minimal overhead, and 
  3. the keys and values can be (de)serialized via msgpack or cPickle.
 
-ShareDB operates via an LMDB structure in an optimistic manner for reading and writing data. As long as you maintain a one-writer-many-reader workflow everything should be fine. Sending a ShareDB instance from parent to children processes is fine, or you may open the same ShareDB in children processes for reading. Parallel writes made in children processes are not safe; they are not guaranteed to be written, and may corrupt instance.
-
-A sample use case
+ShareDB operates via an LMDB structure in an optimistic manner for reading and writing data. As long as you maintain a one-writer-many-reader workflow everything should be fine. Sending a ShareDB instance from parent to children processes is fine, or you may open the same ShareDB in children processes for reading in parallel. Parallel writes made in children processes are not safe; they are not guaranteed to be written, and may corrupt instance.
 
 ### Table of Contents
  * [ShareDB in Action](#sharedb-in-action)
  * [Requirements](#requirements)
  * [Installation](#installation)
- * [License and Contribution](#license-and-contribution)
- * [API Reference](#api-reference)
+ * [Testing](#testing)
+ * [License](#license)
+ * [Contribution](#contribution)
+ * [Usage ](#usage)
+ * [Acknowledgement ](#acknowledgement)
 
 ### ShareDB in Action
 ```python
@@ -26,7 +27,7 @@ A sample use case
 >>> myDB['Name'] = ['Ayaan Hossain']      # Insert information
 >>> myDB.get(key='Name')                  # Retrieve values
 ['Ayaan Hossain']
->>> # Insert/update multiple items while being pythonic!
+>>> # Pythonic insertion/update of multiple items
 >>> len(myDB.multiset(kv_iter=zip(range(0, 10), range(10, 20))).sync())
 11
 >>> 7 in myDB                             # Membership queries work
@@ -35,21 +36,33 @@ True
 Traceback (most recent call last):
 ...
 KeyError: "key=non-existent key of <type 'str'> is absent"
->>> myDB.pop(7)                           # Pop a key just like a dictionary!
+>>> myDB.pop(7)                           # Pop a key just like a dictionary
 17
 >>> list(myDB.multipopitem(num_items=5))  # Or, pop as many items as you need
 [(0, 10), (1, 11), (2, 12), (3, 13), (4, 14)]
->>> myDB.clear().length()                 # Remove everything if you must
+>>> myDB.remove(5).length()               # Remove a single key
+4
+>>> myDB.clear().length()                 # Or, clear entire ShareDB
 0
->>> myDB.drop()                           # Close/delete when you're done!
+>>> myDB.drop()                           # Close/delete when you're done
 True
 ```
 
 ### Requirements
+Apart from the standard library, ShareDB requires the following to run:
+
+ - [lmdb](https://pypi.org/project/lmdb/) >= 0.98
+ - [msgpack](https://pypi.org/project/msgpack/) >= 0.6.2
 
 ### Installation
 
-### License and Contribution
+### Testing
 
-### API Reference
+### License
+
+### Contribution
+
+### Usage
+
+### Acknowledgement
 
