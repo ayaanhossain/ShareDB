@@ -1,4 +1,4 @@
-<h1 align="center">
+﻿<h1 align="center">
     <img src="./logo/logo.png"  alt="ShareDB"  height="48.197"  width="214.912"/>
 </h1>
 
