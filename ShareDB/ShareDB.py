@@ -2,7 +2,7 @@ import shutil
 import os
 import numbers
 import msgpack
-import cPickle
+import pickle as cPickle
 import ConfigParser
 import lmdb
 
