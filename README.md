@@ -14,7 +14,7 @@ ShareDB is a lightweight, **persistent key-value store** with a **dictionary-lik
  2. the data needs to be **read across multiple processes** with minimal overhead, and 
  3. the **keys and values** can be (de)serialized via **msgpack or cPickle**.
 
-Sending a ShareDB object to children processes is fine, or you may open the same ShareDB instance in parellel for reading. **Parallel writes made in children processes are not safe**; they are not guaranteed to be written, and may corrupt instance. ShareDB is primarily developed and tested using **Linux** and compatible with **Python 2.7 and 3.4+**.
+Sending a ShareDB object to children processes is fine, or you may open the same ShareDB instance in parellel for reading. **Parallel writes made in children processes are not safe**; they are not guaranteed to be written, and may corrupt instance. ShareDB is primarily developed and tested using **Linux** and is compatible with both **Python 2.7 and 3.4+**.
 
 ### Table of Contents
  * [ShareDB in Action](#sharedb-in-action)
