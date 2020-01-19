@@ -27,13 +27,10 @@
 
 <p align="center">
   <a href="#sharedb-in-action">ShareDB in Action</a> •
-  <a href="#requirements">Requirements</a> •
   <a href="#installation">Installation</a> •
-  <a href="#testing">Testing</a> •
   <a href="#license">License</a> •
-  <a href="#contribution">Contribution</a>
-  <a href="#usage">Usage </a>
-  <a href="#acknowledgement">Acknowledgement </a>
+  <a href="#contribution">Contribution</a> •
+  <a href="#api">API</a>
 </p>
 
 ShareDB is a lightweight, **persistent key-value store** with a **dictionary-like interface** built on top of [LMDB](https://symas.com/lmdb/). It is intended to replace a python dictionary when
@@ -74,21 +71,15 @@ KeyError: "key=non-existent key of <type 'str'> is absent"
 True
 ```
 
-### Requirements
-Apart from the standard library, ShareDB requires the following to run:
+### Installation
+ShareDB requires the following libraries to run:
 
  - [lmdb](https://pypi.org/project/lmdb/) >= 0.98
  - [msgpack](https://pypi.org/project/msgpack/) >= 0.6.2
-
-### Installation
-
-### Testing
 
 ### License
 
 ### Contribution
 
-### Usage
-
-### Acknowledgement
+### API
 
