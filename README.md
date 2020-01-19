@@ -3,7 +3,7 @@
 </h1>
 
 [s/w version]
-[build passing]
+![build-badge](https://github.com/ayaanhossain/ShareDB/workflows/ShareDBbst/badge.svg)
 [codecov]
 [python]
 [os versions]
