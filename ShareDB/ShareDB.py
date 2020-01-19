@@ -308,7 +308,7 @@ class ShareDB(object):
         True
         >>> myDB._get_packed_key(key=set(test_key[:1]))
         Traceback (most recent call last):
-        Exception: Given key=set([1]) of <type 'set'>, raised: can't serialize set([1])
+        Exception: Given key=set([1]) of <type 'set'>, raised: can not serialize 'set' object
         >>> myDB._get_packed_key(key=None)
         Traceback (most recent call last):
         Exception: ShareDB cannot use <type 'NoneType'> objects as keys or values
@@ -364,7 +364,7 @@ class ShareDB(object):
         True
         >>> myDB._get_packed_val(val=set(test_val[0][:1]))
         Traceback (most recent call last):
-        Exception: Given value=set([1]) of <type 'set'>, raised: can't serialize set([1])
+        Exception: Given value=set([1]) of <type 'set'>, raised: can not serialize 'set' object
         >>> myDB._get_packed_val(val=None)
         Traceback (most recent call last):
         Exception: ShareDB cannot use <type 'NoneType'> objects as keys or values
@@ -462,10 +462,10 @@ class ShareDB(object):
         True
         >>> myDB[tuple(range(1))] = set(range(1))
         Traceback (most recent call last):
-        Exception: Given value=set([0]) of <type 'set'>, raised: can't serialize set([0])
+        Exception: Given value=set([0]) of <type 'set'>, raised: can not serialize 'set' object
         >>> myDB[set(range(1))] = range(1)
         Traceback (most recent call last):
-        Exception: Given key=set([0]) of <type 'set'>, raised: can't serialize set([0])
+        Exception: Given key=set([0]) of <type 'set'>, raised: can not serialize 'set' object
         >>> myDB.drop()
         True
         '''
@@ -492,7 +492,7 @@ class ShareDB(object):
         ShareDB instantiated from ./test_set.ShareDB/
         >>> myDB.set(key=['KEY'], val=set(['SOME_VALUE']))
         Traceback (most recent call last):
-        Exception: Given value=set(['SOME_VALUE']) of <type 'set'>, raised: can't serialize set(['SOME_VALUE'])
+        Exception: Given value=set(['SOME_VALUE']) of <type 'set'>, raised: can not serialize 'set' object
         >>> myDB.set(key=(1, 2, 3, 4), val='SOME_VALUE')
         ShareDB instantiated from ./test_set.ShareDB/
         >>> myDB.set(key='ANOTHER KEY', val=[1, 2, 3, 4])
@@ -522,7 +522,7 @@ class ShareDB(object):
         True
         >>> myDB[set(['KEY'])] = 'SOME_VALUE'
         Traceback (most recent call last):
-        Exception: Given key=set(['KEY']) of <type 'set'>, raised: can't serialize set(['KEY'])
+        Exception: Given key=set(['KEY']) of <type 'set'>, raised: can not serialize 'set' object
         >>> myDB.drop()
         True
         '''
@@ -606,18 +606,18 @@ class ShareDB(object):
 
         get test cases.
 
-        >>> myDB = ShareDB(path='./test_get.ShareDB', reset=True)
+        >>> myDB = ShareDB(path='./test_get_dunder.ShareDB', reset=True)
         >>> for i in range(100): myDB[i] = i**0.5
         >>> len(myDB)
         100
-        >>> myDB = ShareDB(path='./test_get.ShareDB', reset=False)
+        >>> myDB = ShareDB(path='./test_get_dunder.ShareDB', reset=False)
         >>> for i in range(100): assert myDB.get(i) == i**0.5
         >>> myDB.get(key=81)
         9.0
         >>> myDB.get(key=202, default='SENTINEL')
         'SENTINEL'
         >>> myDB.clear()
-        ShareDB instantiated from ./test_get.ShareDB/
+        ShareDB instantiated from ./test_get_dunder.ShareDB/
         >>> myDB.get(key=81, default='SENTINEL')
         'SENTINEL'
         >>> myDB.drop()
@@ -642,7 +642,7 @@ class ShareDB(object):
         100
         >>> myDB.close()
         True
-        >>> myDB = ShareDB(path='./test_getitem.ShareDB', reset=False)
+        >>> myDB = ShareDB(path='./test_getitem', reset=False)
         >>> myDB[49]
         7.0
         >>> myDB[49.0]
@@ -650,7 +650,7 @@ class ShareDB(object):
         KeyError: "key=49.0 of <type 'float'> is absent"
         >>> myDB[set([49.0])]
         Traceback (most recent call last):
-        Exception: Given key=set([49.0]) of <type 'set'>, raised: can't serialize set([49.0])
+        Exception: Given key=set([49.0]) of <type 'set'>, raised: can not serialize 'set' object
         >>> myDB.drop()
         True
         '''
