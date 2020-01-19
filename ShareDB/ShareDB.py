@@ -11,7 +11,7 @@ except:
 try:   
     import ConfigParser
 except:
-    import configparser
+    import configparser as ConfigParser
 
 import lmdb
 
