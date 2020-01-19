@@ -25,6 +25,17 @@
     </a>
 </p>
 
+<p align="center">
+  <a href="#sharedb-in-action">ShareDB in Action</a> •
+  <a href="#requirements">Requirements</a> •
+  <a href="#installation">Installation</a> •
+  <a href="#testing">Testing</a> •
+  <a href="#license">License</a> •
+  <a href="#contribution">Contribution</a>
+  <a href="#usage">Usage </a>
+  <a href="#acknowledgement">Acknowledgement </a>
+</p>
+
 ShareDB is a lightweight, **persistent key-value store** with a **dictionary-like interface** built on top of [LMDB](https://symas.com/lmdb/). It is intended to replace a python dictionary when
 
  1. the key-value store needs to **persist locally** for later reuse,
@@ -32,16 +43,6 @@ ShareDB is a lightweight, **persistent key-value store** with a **dictionary-lik
  3. the **keys and values** can be (de)serialized via **msgpack or cPickle**.
 
 Sending a ShareDB object to children processes is fine, or you may open the same ShareDB instance in parellel for reading. **Parallel writes made in children processes are not safe**; they are not guaranteed to be written, and may corrupt instance. ShareDB is primarily developed and tested using **Linux** and is compatible with both **Python 2.7 and 3.4+**.
-
-### Table of Contents
- * [ShareDB in Action](#sharedb-in-action)
- * [Requirements](#requirements)
- * [Installation](#installation)
- * [Testing](#testing)
- * [License](#license)
- * [Contribution](#contribution)
- * [Usage ](#usage)
- * [Acknowledgement ](#acknowledgement)
 
 ### ShareDB in Action
 ```python
