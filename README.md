@@ -3,14 +3,26 @@
 </h1>
 
 <p align="center">
-	[s/w version]
+	<a href="https://img.shields.io/badge/version-0.1.6-blue">
+	    <img src="https://img.shields.io/badge/version-0.1.6-blue"
+	     alt="version-badge">
+    </a>
 	<a href="https://github.com/ayaanhossain/ShareDB/workflows/CI/badge.svg">
 	    <img src="https://github.com/ayaanhossain/ShareDB/workflows/CI/badge.svg"
-	     alt="CI-Badge">
+	     alt="codecov-badge">
     </a>
-	[codecov]
-	[python]
-	[os versions]
+	<a href="https://img.shields.io/badge/codecov-100%25-brightgreen">
+	    <img src="https://img.shields.io/badge/codecov-100%25-brightgreen"
+	     alt="CI-badge">
+    </a>
+	<a href="https://img.shields.io/badge/python-2.7%20%2F%203.4%2B-blue">
+	    <img src="https://img.shields.io/badge/python-2.7%20%2F%203.4%2B-blue"
+	     alt="python-badge">
+    </a>
+	<a href="https://img.shields.io/badge/os-Linux-blue">
+	    <img src="https://img.shields.io/badge/os-Linux-blue"
+	     alt="os-badge">
+    </a>
 </p>
 
 ShareDB is a lightweight, **persistent key-value store** with a **dictionary-like interface** built on top of [LMDB](https://symas.com/lmdb/). It is intended to replace a python dictionary when
