@@ -1,4 +1,4 @@
-name: ShareDBbst
+name: build
 
 on: [push]
 
@@ -20,7 +20,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install msgpack
         pip install lmdb
-    - name: Test with pytest
+    - name: Test with doctest
       run: |
         cd ./ShareDB/
         python ShareDB.py -v
