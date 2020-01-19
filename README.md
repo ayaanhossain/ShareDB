@@ -2,13 +2,19 @@
     <img src="./logo/logo.png"  alt="ShareDB" width="250"/>
 </h1>
 
-ShareDB is a lightweight on-disk key-value store with a dictionary-like interface built on top of LMDB and is intended to replace a built-in python dictionary when
+[s/w version]
+[build passing]
+[codecov]
+[python]
+[os versions]
 
- 1. the key-value store needs to persist on disk for later reuse,
- 2. the data needs to be read across multiple processes with minimal overhead, and 
- 3. the keys and values can be (de)serialized via msgpack or cPickle.
+ShareDB is a lightweight, **persistent key-value store** with a **dictionary-like interface** built on top of [LMDB](https://symas.com/lmdb/). It is intended to replace a python dictionary when
 
-ShareDB operates via an LMDB structure in an optimistic manner for reading and writing data. As long as you maintain a one-writer-many-reader workflow everything should be fine. Sending a ShareDB instance from parent to children processes is fine, or you may open the same ShareDB in children processes for reading in parallel. Parallel writes made in children processes are not safe; they are not guaranteed to be written, and may corrupt instance.
+ 1. the key-value store needs to **persist locally** for later reuse,
+ 2. the data needs to be **read across multiple processes** with minimal overhead, and 
+ 3. the **keys and values** can be (de)serialized via **msgpack or cPickle**.
+
+Sending a ShareDB object from parent to children processes is fine, or you may open the same ShareDB in children processes for reading in parallel. Parallel writes made in children processes are not safe; they are not guaranteed to be written, and may corrupt instance. ShareDB is primarily developed and tested using **Linux** and compatible with **Python 2.7/3.4+**.
 
 ### Table of Contents
  * [ShareDB in Action](#sharedb-in-action)
