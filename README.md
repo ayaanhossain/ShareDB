@@ -1,12 +1,13 @@
 ﻿<h1 align="center">
     <img src="./logo/logo.png"  alt="ShareDB" width="250"/>
 </h1>
-
-[s/w version]
+<p align="center">
+	[s/w version]
 ![build-badge](https://github.com/ayaanhossain/ShareDB/workflows/CI/badge.svg)
-[codecov]
-[python]
-[os versions]
+	[codecov]
+	[python]
+	[os versions]
+</p>
 
 ShareDB is a lightweight, **persistent key-value store** with a **dictionary-like interface** built on top of [LMDB](https://symas.com/lmdb/). It is intended to replace a python dictionary when
 
