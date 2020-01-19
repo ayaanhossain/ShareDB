@@ -1,9 +1,13 @@
 ﻿<h1 align="center">
     <img src="./logo/logo.png"  alt="ShareDB" width="250"/>
 </h1>
+
 <p align="center">
 	[s/w version]
-![build-badge](https://github.com/ayaanhossain/ShareDB/workflows/CI/badge.svg)
+	<a href="https://github.com/ayaanhossain/ShareDB/workflows/CI/badge.svg">
+	    <img src="https://github.com/ayaanhossain/ShareDB/workflows/CI/badge.svg"
+	     alt="CI-Badge">
+    </a>
 	[codecov]
 	[python]
 	[os versions]
