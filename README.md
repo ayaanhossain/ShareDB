@@ -1,5 +1,5 @@
 ﻿<h1 align="center">
-    <img src="./logo/logo.png"  alt="ShareDB" width="250"/>
+    <img src="./logo/logo.svg"  alt="ShareDB" width="250"/>
 </h1>
 
 <p align="center">
