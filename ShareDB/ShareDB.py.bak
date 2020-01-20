@@ -1,12 +1,9 @@
-from future import standard_library
-standard_library.install_aliases()
-from builtins import object
 import shutil
 import os
 import numbers
 import msgpack
-import pickle
-import configparser
+import cPickle
+import ConfigParser
 import lmdb
 
 
@@ -41,7 +38,7 @@ class ShareDB(object):
 
     (1) the data to store needs to persist on disk for later reuse,
     (2) the data needs to be read across multiple processes with minimal overhead, and 
-    (3) the keys and values can be (de)serialized via msgpack or pickle.
+    (3) the keys and values can be (de)serialized via msgpack or cPickle.
 
     ShareDB operates via an LMDB structure in an optimistic manner for reading and
     writing data. As long as you maintain a one-writer-many-reader workflow everything
@@ -51,7 +48,7 @@ class ShareDB(object):
     and may corrupt instance.
     '''
 
-    __version__ = '0.2.0'
+    __version__ = '0.1.6'
 
     __author__ = 'Ayaan Hossain'
 
@@ -61,7 +58,7 @@ class ShareDB(object):
 
         :: path        - a/path/to/a/directory/to/persist/the/data (default=None)
         :: reset       - boolean, if True - delete and recreate path following parameters (default=False)
-        :: serial      - string, must be either 'msgpack' or 'pickle' (default='msgpack')
+        :: serial      - string, must be either 'msgpack' or 'cPickle' (default='msgpack')
         :: readers     - max no. of processes that'll read data in parallel (default=40 processes)
         :: buffer_size - max no. of commits after which a sync is triggered (default=100,000)
         :: map_size    - max amount of bytes to allocate for storage (default=1GB)
@@ -112,7 +109,7 @@ class ShareDB(object):
                          readers=100 of <type 'int'>,
                          buffer_size=100000 of <type 'int'>,
                          map_size=1000000000 of <type 'int'>,
-                         raised: serial must be 'msgpack' or 'pickle' not something_fancy
+                         raised: serial must be 'msgpack' or 'cPickle' not something_fancy
         >>> myDB = ShareDB(path='./test_init.ShareDB', reset=True, readers='XYZ', buffer_size=100, map_size=10**3)
         Traceback (most recent call last):
         Exception: Given path=./test_init.ShareDB/ of <type 'str'>,
@@ -226,7 +223,7 @@ class ShareDB(object):
         '''
         Internal helper funtion to create ShareDB configuration file.
         '''
-        config = configparser.RawConfigParser()
+        config = ConfigParser.RawConfigParser()
         config.add_section('ShareDB Config')
         config.set('ShareDB Config', 'SERIAL',   serial)
         config.set('ShareDB Config', 'PARALLEL', readers)
@@ -241,22 +238,22 @@ class ShareDB(object):
         '''
         Internal helper function to decide (un)packing functions.
         '''
-        if serial not in ['msgpack', 'pickle']:
+        if serial not in ['msgpack', 'cPickle']:
             raise Exception(
-                'serial must be \'msgpack\' or \'pickle\' not {}'.format(serial))
+                'serial must be \'msgpack\' or \'cPickle\' not {}'.format(serial))
         if serial == 'msgpack':
             PACK = msgpack.packb
             UNPACK = msgpack.unpackb
-        if serial == 'pickle':
-            PACK = pickle.dumps
-            UNPACK = pickle.loads
+        if serial == 'cPickle':
+            PACK = cPickle.dumps
+            UNPACK = cPickle.loads
         return PACK, UNPACK
 
     def _load_config(self, path):
         '''
         Internal helper funtion to load ShareDB configuration file.
         '''
-        config = configparser.RawConfigParser()
+        config = ConfigParser.RawConfigParser()
         config.read(path+'ShareDB.config')
         return config
 
@@ -528,7 +525,7 @@ class ShareDB(object):
 
         length test cases.
 
-        >>> myDB = ShareDB(path='./test_length', reset=True, serial='pickle')
+        >>> myDB = ShareDB(path='./test_length', reset=True, serial='cPickle')
         >>> for i in range(500, 600): myDB[i] = set([2.0*i])
         >>> len(myDB)
         100
@@ -724,7 +721,7 @@ class ShareDB(object):
 
         ___contain___ test cases.
 
-        >>> myDB = ShareDB(path='./test_contains', reset=True, serial='pickle')
+        >>> myDB = ShareDB(path='./test_contains', reset=True, serial='cPickle')
         >>> for i in range(100): myDB[i] = [i**0.5, i**2]
         >>> 95 in myDB
         True
@@ -786,7 +783,7 @@ class ShareDB(object):
 
         multiremove test cases.
 
-        >>> myDB = ShareDB(path='./test_multiremove.ShareDB', reset=True, serial='pickle')
+        >>> myDB = ShareDB(path='./test_multiremove.ShareDB', reset=True, serial='cPickle')
         >>> for i in range(100): myDB[i] = i**2
         >>> len(myDB)
         100
@@ -1085,7 +1082,7 @@ class ShareDB(object):
         curr_key = self._iter_on_disk_kv(yield_key=True, unpack_key=False)
         item_keys = []
         while len(item_keys) < num_items:
-            item_keys.append(next(curr_key))
+            item_keys.append(curr_key.next())
 
         # Pop packed keys in item_keys, and yield the unapacked items
         with self.DB.begin(write=True) as itempopper:
@@ -1112,7 +1109,7 @@ class ShareDB(object):
         True
         '''
         curr_key = self._iter_on_disk_kv(yield_key=True, unpack_key=False)
-        item_key = next(curr_key)
+        item_key = curr_key.next()
         with self.DB.begin(write=True) as itempopper:
             key, val = self._get_unpacked_key(key=item_key), \
                        self._del_pop_from_disk(
