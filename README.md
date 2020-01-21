@@ -64,8 +64,8 @@ KeyError: "key=non-existent key of <type 'str'> is absent"
 17
 >>> list(myDB.multipopitem(num_items=5))  # Or, pop as many items as you need
 [(0, 10), (1, 11), (2, 12), (3, 13), (4, 14)]
->>> myDB.remove(5).remove(6).remove(7).length()               # Chain removal of several keys
-1
+>>> myDB.remove(5).remove(6).length()     # Chain removal of several keys
+2
 >>> myDB.clear().length()                 # Or, clear entire ShareDB
 0
 >>> myDB.drop()                           # Close/delete when you're done
