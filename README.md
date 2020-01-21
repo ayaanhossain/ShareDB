@@ -116,14 +116,18 @@ See [LICENSE](./LICENSE) file for more details.
 ### Contribution
 To contribute to `ShareDB`, please **clone** this repository **locally**, **commit** your code on a **separate branch**, and **submit** a **pull request** following the [Contributor Covenant](https://www.contributor-covenant.org/version/2/0/code_of_conduct). See [COC.md](./COC.md) file for more details.
 
-We recommend you to **discuss** any changes you have in mind by **opening an issue** at first. Please ensure that **all code modifications** are accompanied by detailed **comments**, **new unit tests** as reasonable, and **pass existing unit tests**.
+We recommend you to **discuss** any changes you have in mind by first **opening an issue**.
+
+Please ensure that **all code modifications** are accompanied by detailed **comments**, **new unit tests** as reasonable, and **pass existing unit tests**.
 
 ### Acknowledgements
 `ShareDB` is maintained by:
 
  - Ayaan Hossain | [github.com/ayaanhossain](https://github.com/ayaanhossain) | [@bioalgorithmist](https://twitter.com/bioalgorithmist)
 
-`ShareDB` was primarily developed due to scalable data analytics needs at [Prof. Howard Salis](https://twitter.com/hsalis)' Lab at [Penn State University](https://salislab.net/). Dr. Salis has funded the development of `ShareDB`.
+`ShareDB` was primarily developed due to scalable data analytics needs at [Prof. Howard Salis](https://twitter.com/hsalis)' Lab at [Penn State University](https://salislab.net/).
+
+Prof. Salis has funded the development of `ShareDB`.
 
 ### API
 `ShareDB` API details can be found in the [API.md](./API.md) file.
