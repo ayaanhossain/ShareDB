@@ -47,7 +47,7 @@ class ShareDB(object):
     Python 2.7 and 3.8.
     '''
 
-    __version__ = '0.2.3'
+    __version__ = '0.2.4'
 
     __author__ = 'Ayaan Hossain'
 
@@ -66,7 +66,7 @@ class ShareDB(object):
 
         >>> myDB = ShareDB()
         Traceback (most recent call last):
-        Exception: Given path=None of <type 'NoneType'>,
+        TypeError: Given path=None of <type 'NoneType'>,
                          reset=False of <type 'bool'>,
                          serial=msgpack of <type 'str'>,
                          readers=100 of <type 'int'>,
@@ -75,7 +75,7 @@ class ShareDB(object):
                          raised: 'NoneType' object has no attribute 'endswith'
         >>> myDB = ShareDB(path=True)
         Traceback (most recent call last):
-        Exception: Given path=True of <type 'bool'>,
+        TypeError: Given path=True of <type 'bool'>,
                          reset=False of <type 'bool'>,
                          serial=msgpack of <type 'str'>,
                          readers=100 of <type 'int'>,
@@ -84,7 +84,7 @@ class ShareDB(object):
                          raised: 'bool' object has no attribute 'endswith'
         >>> myDB = ShareDB(path=123)
         Traceback (most recent call last):
-        Exception: Given path=123 of <type 'int'>,
+        TypeError: Given path=123 of <type 'int'>,
                          reset=False of <type 'bool'>,
                          serial=msgpack of <type 'str'>,
                          readers=100 of <type 'int'>,
@@ -93,7 +93,7 @@ class ShareDB(object):
                          raised: 'int' object has no attribute 'endswith'
         >>> myDB = ShareDB(path='/22.f')
         Traceback (most recent call last):
-        Exception: Given path=/22.f.ShareDB/ of <type 'str'>,
+        TypeError: Given path=/22.f.ShareDB/ of <type 'str'>,
                          reset=False of <type 'bool'>,
                          serial=msgpack of <type 'str'>,
                          readers=100 of <type 'int'>,
@@ -102,7 +102,7 @@ class ShareDB(object):
                          raised: [Errno 13] Permission denied: '/22.f.ShareDB/'
         >>> myDB = ShareDB(path='./test_init.ShareDB', reset=True, serial='something_fancy')
         Traceback (most recent call last):
-        Exception: Given path=./test_init.ShareDB/ of <type 'str'>,
+        TypeError: Given path=./test_init.ShareDB/ of <type 'str'>,
                          reset=True of <type 'bool'>,
                          serial=something_fancy of <type 'str'>,
                          readers=100 of <type 'int'>,
@@ -111,7 +111,7 @@ class ShareDB(object):
                          raised: serial must be 'msgpack' or 'pickle' not something_fancy
         >>> myDB = ShareDB(path='./test_init.ShareDB', reset=True, readers='XYZ', buffer_size=100, map_size=10**3)
         Traceback (most recent call last):
-        Exception: Given path=./test_init.ShareDB/ of <type 'str'>,
+        TypeError: Given path=./test_init.ShareDB/ of <type 'str'>,
                          reset=True of <type 'bool'>,
                          serial=msgpack of <type 'str'>,
                          readers=XYZ of <type 'str'>,
@@ -185,7 +185,7 @@ class ShareDB(object):
                 lock=True)
 
         except Exception as E:
-            raise Exception(
+            raise TypeError(
                 '''Given path={} of {},
                  reset={} of {},
                  serial={} of {},
@@ -251,7 +251,7 @@ class ShareDB(object):
         Internal helper function to decide (un)packing functions.
         '''
         if serial not in ['msgpack', 'pickle']:
-            raise Exception(
+            raise ValueError(
                 'serial must be \'msgpack\' or \'pickle\' not {}'.format(serial))
         if serial == 'msgpack':
             PACK   = lambda x: msgpack.packb(x, use_bin_type=True)
@@ -261,12 +261,15 @@ class ShareDB(object):
             UNPACK = lambda x: pickle.loads(x)
         return PACK, UNPACK
 
-    def _alivemethod(method):
+    def alivemethod(method):
+        '''
+        Internal decorator gating ShareDB operations when instance is closed/dropped.
+        '''
         def wrapper(self, *args, **kwargs):
             if self.ALIVE:
                 return method(self, *args, **kwargs)
             else:
-                raise Exception(
+                raise RuntimeError(
                     'Access to {} has been closed or dropped'.format(repr(self)))
         return wrapper
 
@@ -312,21 +315,22 @@ class ShareDB(object):
         True
         >>> myDB._get_packed_key(key=set(test_key[:1]))
         Traceback (most recent call last):
-        Exception: Given key=set([1]) of <type 'set'>, raised: can not serialize 'set' object
+        TypeError: Given key=set([1]) of <type 'set'>, raised: can not serialize 'set' object
         >>> myDB._get_packed_key(key=None)
         Traceback (most recent call last):
-        Exception: ShareDB cannot use <type 'NoneType'> objects as keys or values
+        TypeError: ShareDB cannot use <type 'NoneType'> objects as keys
         >>> myDB.drop()
         True
         '''
         if key is None:
-            raise Exception(
-                'ShareDB cannot use {} objects as keys or values'.format(type(None)))
+            raise TypeError(
+                'ShareDB cannot use {} objects as keys'.format(type(None)))
         try:
             key = self.PACK(key)
         except Exception as E:
-            raise Exception(
-                'Given key={} of {}, raised: {}'.format(key, type(key), E))
+            raise TypeError(
+                'Given key={} of {}, raised: {}'.format(
+                    key, type(key), E))
         return key
 
     def _get_unpacked_key(self, key):
@@ -345,13 +349,14 @@ class ShareDB(object):
         True
         '''
         if key is None:
-            raise Exception(
-                'ShareDB cannot use {} objects as keys or values'.format(type(None)))
+            raise TypeError(
+                'ShareDB cannot use {} objects as keys'.format(type(None)))
         try:
             key = self.UNPACK(key)
         except Exception as E:
-            raise Exception(
-                'Given key={} of {}, raised: {}'.format(key, type(key), E))
+            raise TypeError(
+                'Given key={} of {}, raised: {}'.format(
+                    key, type(key), E))
         return key
 
     def _get_packed_val(self, val):
@@ -368,21 +373,22 @@ class ShareDB(object):
         True
         >>> myDB._get_packed_val(val=set(test_val[0][:1]))
         Traceback (most recent call last):
-        Exception: Given value=set([1]) of <type 'set'>, raised: can not serialize 'set' object
+        TypeError: Given value=set([1]) of <type 'set'>, raised: can not serialize 'set' object
         >>> myDB._get_packed_val(val=None)
         Traceback (most recent call last):
-        Exception: ShareDB cannot use <type 'NoneType'> objects as keys or values
+        TypeError: ShareDB cannot use <type 'NoneType'> objects as values
         >>> myDB.drop()
         True
         '''
         if val is None:
-            raise Exception(
-                'ShareDB cannot use {} objects as keys or values'.format(type(None)))
+            raise TypeError(
+                'ShareDB cannot use {} objects as values'.format(type(None)))
         try:
             val = self.PACK(val)
         except Exception as E:
-            raise Exception(
-                'Given value={} of {}, raised: {}'.format(val, type(val), E))
+            raise TypeError(
+                'Given value={} of {}, raised: {}'.format(
+                    val, type(val), E))
         return val
 
     def _get_unpacked_val(self, val):
@@ -401,13 +407,14 @@ class ShareDB(object):
         True
         '''
         if val is None:
-            raise Exception(
-                'ShareDB cannot use {} objects as keys or values'.format(type(None)))
+            raise TypeError(
+                'ShareDB cannot use {} objects as values'.format(type(None)))
         try:
             val = self.UNPACK(val)
         except Exception as E:
-            raise Exception(
-                'Given value={} of {}, raised: {}'.format(val, type(val), E))
+            raise TypeError(
+                'Given value={} of {}, raised: {}'.format(
+                    val, type(val), E))
         return val
 
     def _trigger_sync(self):
@@ -434,7 +441,7 @@ class ShareDB(object):
         self._trigger_sync()
         return None
 
-    @_alivemethod
+    @alivemethod
     def multiset(self, kv_iter):
         '''
         User function to insert/update multiple key-value pairs into ShareDB instance.
@@ -480,10 +487,11 @@ class ShareDB(object):
                     self._insert_kv_in_txn(key=key, val=val, txn=kvsetter)
             except Exception as E:
                 raise Exception(
-                    'Given kv_iter={} of {}, raised: {}'.format(kv_iter, type(kv_iter), E))
+                    'Given kv_iter={} of {}, raised: {}'.format(
+                        kv_iter, type(kv_iter), E))
         return self
 
-    @_alivemethod
+    @alivemethod
     def set(self, key, val):
         '''
         User function to insert/overwrite a key-value pair into ShareDB instance.
@@ -528,13 +536,13 @@ class ShareDB(object):
         True
         >>> myDB[set(['KEY'])] = 'SOME_VALUE'
         Traceback (most recent call last):
-        Exception: Given key=set(['KEY']) of <type 'set'>, raised: can not serialize 'set' object
+        TypeError: Given key=set(['KEY']) of <type 'set'>, raised: can not serialize 'set' object
         >>> myDB.drop()
         True
         '''
         return self.set(key=key, val=val)
 
-    @_alivemethod
+    @alivemethod
     def length(self):
         '''
         User function to return the number of items stored in ShareDB.
@@ -604,7 +612,7 @@ class ShareDB(object):
             return default
         return self._get_unpacked_val(val)
 
-    @_alivemethod
+    @alivemethod
     def get(self, key, default=None):
         '''
         User function to query value for a given key else return default.
@@ -658,7 +666,7 @@ class ShareDB(object):
         KeyError: "key=49.0 of <type 'float'> is absent"
         >>> myDB[set([49.0])]
         Traceback (most recent call last):
-        Exception: Given key=set([49.0]) of <type 'set'>, raised: can not serialize 'set' object
+        TypeError: Given key=set([49.0]) of <type 'set'>, raised: can not serialize 'set' object
         >>> myDB.drop()
         True
         '''
@@ -668,7 +676,7 @@ class ShareDB(object):
                 'key={} of {} is absent'.format(key, type(key)))
         return val
 
-    @_alivemethod
+    @alivemethod
     def multiget(self, key_iter, default=None):
         '''
         User function to return an iterator of values for a given iterable of keys.
@@ -702,7 +710,7 @@ class ShareDB(object):
                     'Given key_iter={} of {}, raised: {}'.format(
                         key_iter, type(key_iter), E))
 
-    @_alivemethod
+    @alivemethod
     def has_key(self, key):
         '''
         User function to check existence of given key in ShareDB.
@@ -783,18 +791,19 @@ class ShareDB(object):
         elif opr == 'pop':
             try:
                 val = self._get_unpacked_val(val=txn.pop(key=key))
-            except Exception:
+            except:
                 key = self._get_unpacked_key(key=key)
                 raise KeyError(
-                    'key={} of {} is absent'.format(key, type(key)))
+                    'key={} of {} is absent'.format(
+                        key, type(key)))
         else:
-            raise Exception(
+            raise ValueError(
                 'opr must be \'del\' or \'pop\' not {}'.format(opr))
         self.BQSIZE += 1
         self._trigger_sync()
         return val
 
-    @_alivemethod
+    @alivemethod
     def multiremove(self, key_iter):
         '''
         User function to remove all key-value pairs specified in the iterable of keys.
@@ -828,7 +837,7 @@ class ShareDB(object):
                         key_iter, type(key_iter), E))
         return self
 
-    @_alivemethod
+    @alivemethod
     def remove(self, key):
         '''
         User function to remove a key-value pair.
@@ -879,7 +888,7 @@ class ShareDB(object):
         '''
         return self.remove(key=key)
 
-    @_alivemethod
+    @alivemethod
     def multipop(self, key_iter, default=None):
         '''
         User function to return an iterator of popped values for a given iterable of keys.
@@ -919,7 +928,7 @@ class ShareDB(object):
                     'Given key_iter={} of {}, raised: {}'.format(
                         key_iter, type(key_iter), E))
 
-    @_alivemethod
+    @alivemethod
     def pop(self, key, default=None):
         '''
         User function to pop a key and return its value.
@@ -994,10 +1003,10 @@ class ShareDB(object):
                     elif yield_key and yield_val:
                         yield key, val
                     else:
-                        raise Exception(
-                            'All four params to _iter_on_disk_kv cannot be False or None')
+                        raise ValueError(
+                            'All args to ._iter_on_disk_kv() are False or None')
 
-    @_alivemethod
+    @alivemethod
     def items(self):
         '''
         User function to iterate over key-value pairs in ShareDB.
@@ -1022,7 +1031,7 @@ class ShareDB(object):
         return self._iter_on_disk_kv(
             yield_key=True, unpack_key=True, yield_val=True, unpack_val=True)
 
-    @_alivemethod
+    @alivemethod
     def keys(self):
         '''
         User function to iterate over keys in ShareDB.
@@ -1046,7 +1055,7 @@ class ShareDB(object):
         '''
         return self._iter_on_disk_kv(yield_key=True, unpack_key=True)
 
-    @_alivemethod
+    @alivemethod
     def values(self):
         '''
         User function to iterate over values in ShareDB.
@@ -1070,7 +1079,7 @@ class ShareDB(object):
         '''
         return self._iter_on_disk_kv(yield_val=True, unpack_val=True)
 
-    @_alivemethod
+    @alivemethod
     def multipopitem(self, num_items=None):
         '''
         User function to pop over key-value pairs in ShareDB.
@@ -1099,8 +1108,8 @@ class ShareDB(object):
         '''
         # Check if num_items is valid, and set up accordingly
         if not isinstance(num_items, numbers.Real):
-            raise Exception(
-                'num_items={}, of {} must be an integer/long/float'.format(
+            raise TypeError(
+                'num_items={} of {} must be an integer/long/float'.format(
                     num_items, type(num_items)))
         else:
             num_items = min(num_items, self.length())
@@ -1118,7 +1127,7 @@ class ShareDB(object):
                     self._del_pop_from_disk(
                         key=item_key, txn=itempopper, opr='pop', packed=True)
 
-    @_alivemethod
+    @alivemethod
     def popitem(self):
         '''
         User function to pop a single key-value pairs in ShareDB.
@@ -1144,7 +1153,7 @@ class ShareDB(object):
                             key=item_key, txn=itempopper, opr='pop', packed=True)
         return key, val
 
-    @_alivemethod
+    @alivemethod
     def sync(self):
         '''
         User function to flush ShareDB inserts/changes/commits on to disk.
@@ -1162,7 +1171,7 @@ class ShareDB(object):
             to_drop = self.DB.open_db()
             dropper.drop(db=to_drop, delete=drop_DB)
 
-    @_alivemethod
+    @alivemethod
     def clear(self):
         '''
         User function to remove all data stored in a ShareDB instance.
@@ -1215,7 +1224,7 @@ class ShareDB(object):
         False
         >>> 1 in myDB
         Traceback (most recent call last):
-        Exception: Access to ShareDB instantiated from ./test_close.ShareDB/ has been closed or dropped
+        RuntimeError: Access to ShareDB instantiated from ./test_close.ShareDB/ has been closed or dropped
         >>> myDB = ShareDB(path='./test_close.ShareDB', reset=False)
         >>> myDB.drop()
         True
@@ -1234,7 +1243,7 @@ class ShareDB(object):
         drop test cases.
 
         >>> myDB = ShareDB(path='./test_drop.ShareDB', reset=True)
-        >>> for i in range(10): myDB[range(i, i+5)] = range(i+5, i+10)
+        >>> for i in range(10): myDB[list(range(i, i+5))] = list(range(i+5, i+10))
         >>> len(myDB)
         10
         >>> len(myDB)
@@ -1245,7 +1254,7 @@ class ShareDB(object):
         False
         >>> 0 in myDB
         Traceback (most recent call last):
-        Exception: Access to ShareDB instantiated from ./test_drop.ShareDB/ has been closed or dropped
+        RuntimeError: Access to ShareDB instantiated from ./test_drop.ShareDB/ has been closed or dropped
         >>> myDB = ShareDB(path='./test_drop.ShareDB', reset=False)
         >>> len(myDB)
         0
