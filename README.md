@@ -115,11 +115,9 @@ $ pip uninstall ShareDB
 See [LICENSE](./LICENSE) file for more details.
 
 ### Contributing
-We recommend **discussing** any changes you have in mind by first **opening an issue**.
+We recommend **discussing** any issues/bugs you're facing, or any changes you have in mind by first **opening an issue**, following the [Contributor Covenant](https://www.contributor-covenant.org/version/2/0/code_of_conduct). See [COC.md](./docs/COC.md) file for more details.
 
-To contribute to `ShareDB`, please **clone** or **fork** this repository, **commit** your code on a **separate branch**, and **submit** a **pull request** following the [Contributor Covenant](https://www.contributor-covenant.org/version/2/0/code_of_conduct). See [COC.md](./docs/COC.md) file for more details.
-
-Please ensure that **all code modifications** are accompanied by detailed **comments**, **new unit tests** as reasonable, and **pass existing unit tests**.  For versioning, we use [SemVer](https://semver.org/).
+To contribute to `ShareDB`, please **clone** or **fork** this repository, **commit** your code on a **separate branch**, and **submit** a **pull request**. We expect **all code modifications** to be accompanied by detailed **comments**, **new unit tests** as reasonable, and **pass existing unit tests**.  For versioning, we use [SemVer](https://semver.org/).
 
 ### Acknowledgements
 `ShareDB` is maintained by:
