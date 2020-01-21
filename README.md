@@ -11,9 +11,9 @@
 	    <img src="https://github.com/ayaanhossain/ShareDB/workflows/CI/badge.svg"
 	     alt="CI-badge">
     </a>
-	<a href="https://codecov.io/github/ayaanhossain/ShareDB/coverage.svg?branch=master">
-	    <img src="https://codecov.io/github/ayaanhossain/ShareDB/coverage.svg?branch=master"
-	     alt="codecov-badge">
+	<a href="https://codecov.io/gh/ayaanhossain/ShareDB">
+		<img src="https://codecov.io/gh/ayaanhossain/ShareDB/branch/master/graph/badge.svg?token=syTKRG9H8O"
+		 alt="codecov-badge">
     </a>
 	<a href="https://img.shields.io/badge/python-2.7%20and%203.8-blue">
 	    <img src="https://img.shields.io/badge/python-2.7%20and%203.8-blue"
