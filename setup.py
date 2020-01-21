@@ -53,6 +53,7 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
     ],
     keywords='LMDB key-value store parallel data share',
 
@@ -60,7 +61,7 @@ setup(
 
     python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4',
 
-    install_requires=['lmdb', 'msgpack'],
+    install_requires=['lmdb', 'msgpack', 'configparser'],
 
     project_urls={  # Optional
         'Bug Reports': 'https://github.com/pypa/sampleproject/issues',
