@@ -19,9 +19,9 @@
 	    <img src="https://img.shields.io/badge/python-2.7%20and%203.8-blue"
 	     alt="python-badge">
     </a>
-	<a href="https://img.shields.io/badge/os-Linux-blue">
-	    <img src="https://img.shields.io/badge/os-Linux-blue"
-	     alt="os-badge">
+	<a href="https://img.shields.io/badge/license-MIT-yellow">
+	    <img src="https://img.shields.io/badge/license-MIT-yellow"
+	     alt="license-badge">
     </a>
 </p>
 
