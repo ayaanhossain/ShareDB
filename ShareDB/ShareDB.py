@@ -159,7 +159,7 @@ class ShareDB(object):
                 config = self._load_config(path)
 
             # Setup ShareDB instance
-            self.PATH = path  # Path to ShareDB
+            self.PATH  = path  # Path to ShareDB
             self.ALIVE = True  # Instance is alive
             # Serialization to use for (un)packing keys and values
             self.PACK, self.UNPACK = self._get_serialization_functions(
@@ -241,10 +241,10 @@ class ShareDB(object):
             raise Exception(
                 'serial must be \'msgpack\' or \'pickle\' not {}'.format(serial))
         if serial == 'msgpack':
-            PACK = lambda x: msgpack.packb(x, use_bin_type=True)
+            PACK   = lambda x: msgpack.packb(x, use_bin_type=True)
             UNPACK = lambda x: msgpack.unpackb(x, raw=False, use_list=True)
         if serial == 'pickle':
-            PACK = lambda x: pickle.dumps(x, protocol=pickle.HIGHEST_PROTOCOL)
+            PACK   = lambda x: pickle.dumps(x, protocol=pickle.HIGHEST_PROTOCOL)
             UNPACK = lambda x: pickle.loads(x)
         return PACK, UNPACK
 
