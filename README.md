@@ -31,7 +31,7 @@
   <a href="#license">License</a> •
   <a href="#contributing">Contributing</a> •
   <a href="#acknowledgements">Acknowledgements</a> •
-  <a href="./API.md">API</a>
+  <a href="./docs/API.md">API</a>
 </p>
 
 `ShareDB` is a lightweight, **persistent key-value store** with a **dictionary-like interface** built on top of [LMDB](https://symas.com/lmdb/). It is intended to replace a python dictionary when
