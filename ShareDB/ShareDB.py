@@ -241,11 +241,11 @@ class ShareDB(object):
             raise Exception(
                 'serial must be \'msgpack\' or \'pickle\' not {}'.format(serial))
         if serial == 'msgpack':
-            PACK = msgpack.packb
-            UNPACK = msgpack.unpackb
+            PACK = lambda x: msgpack.packb(x, use_bin_type=True)
+            UNPACK = lambda x: msgpack.unpackb(x, raw=False, use_list=True)
         if serial == 'pickle':
-            PACK = pickle.dumps
-            UNPACK = pickle.loads
+            PACK = lambda x: pickle.dumps(x, protocol=pickle.HIGHEST_PROTOCOL)
+            UNPACK = lambda x: pickle.loads(x)
         return PACK, UNPACK
 
     def _load_config(self, path):
@@ -294,7 +294,7 @@ class ShareDB(object):
 
         >>> myDB = ShareDB(path='./test_get_packed_key', reset=True)
         >>> test_key = [1, '2', 3.0, None]
-        >>> myDB._get_packed_key(key=test_key) == msgpack.packb(test_key)
+        >>> myDB._get_packed_key(key=test_key) == msgpack.packb(test_key, use_bin_type=True)
         True
         >>> myDB._get_packed_key(key=set(test_key[:1]))
         Traceback (most recent call last):
@@ -350,7 +350,7 @@ class ShareDB(object):
 
         >>> myDB = ShareDB(path='./test_get_packed_val.ShareDB', reset=True)
         >>> test_val = {0: [1, '2', 3.0, None]}
-        >>> myDB._get_packed_val(val=test_val) == msgpack.packb(test_val)
+        >>> myDB._get_packed_val(val=test_val) == msgpack.packb(test_val, use_bin_type=True)
         True
         >>> myDB._get_packed_val(val=set(test_val[0][:1]))
         Traceback (most recent call last):
