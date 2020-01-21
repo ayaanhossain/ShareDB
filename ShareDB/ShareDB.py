@@ -33,22 +33,21 @@ class ShareDB(object):
     '''
 
     __doc__ = '''
-    ShareDB is a lightweight on-disk key-value store with a dictionary-like interface
-    built on top of LMDB and is intended to replace a built-in python dictionary when
+    ShareDB is a lightweight, persistent key-value store with a dictionary-like interface
+    built on top of LMDB. It is intended to replace a python dictionary when
 
-    (1) the data to store needs to persist on disk for later reuse,
-    (2) the data needs to be read across multiple processes with minimal overhead, and 
+    (1) the key-value store needs to persist locally for later reuse,
+    (2) the data needs to be read across multiple processes with minimal overhead, and
     (3) the keys and values can be (de)serialized via msgpack or pickle.
 
-    ShareDB operates via an LMDB structure in an optimistic manner for reading and
-    writing data. As long as you maintain a one-writer-many-reader workflow everything
-    should be fine. Sending a ShareDB instance from parent to children processes is fine,
-    or you may open the same ShareDB in children processes for reading. Parallel writes
-    made in children processes are not safe; they are not guaranteed to be written,
-    and may corrupt instance.
+    Sending a ShareDB object to children processes is fine, or you may open the same 
+    ShareDB instance in parellel for reading. Parallel writes made in children processes
+    are not safe; they are not guaranteed to be written, and may corrupt instance.
+    ShareDB is primarily developed and tested using Linux and is compatible with both
+    Python 2.7 and 3.8.
     '''
 
-    __version__ = '0.2.0'
+    __version__ = '0.2.1'
 
     __author__ = 'Ayaan Hossain'
 

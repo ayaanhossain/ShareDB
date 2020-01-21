@@ -61,7 +61,7 @@ setup(
 
     python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4',
 
-    install_requires=['lmdb', 'msgpack', 'configparser'],
+    install_requires=['lmdb', 'msgpack', 'configparser', 'pytest'],
 
     project_urls={  # Optional
         'Bug Reports': 'https://github.com/pypa/sampleproject/issues',

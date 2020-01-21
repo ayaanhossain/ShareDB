@@ -33,15 +33,15 @@
   <a href="#api">API</a>
 </p>
 
-ShareDB is a lightweight, **persistent key-value store** with a **dictionary-like interface** built on top of [LMDB](https://symas.com/lmdb/). It is intended to replace a python dictionary when
+`ShareDB` is a lightweight, **persistent key-value store** with a **dictionary-like interface** built on top of [LMDB](https://symas.com/lmdb/). It is intended to replace a python dictionary when
 
  1. the key-value store needs to **persist locally** for later reuse,
  2. the data needs to be **read across multiple processes** with minimal overhead, and 
- 3. the **keys and values** can be (de)serialized via **msgpack or cPickle**.
+ 3. the **keys** and **values** can be (de)serialized via **msgpack** or **pickle**.
 
-Sending a ShareDB object to children processes is fine, or you may open the same ShareDB instance in parellel for reading. **Parallel writes made in children processes are not safe**; they are not guaranteed to be written, and may corrupt instance. ShareDB is primarily developed and tested using **Linux** and is compatible with both **Python 2.7 and 3.8**.
+Sending a `ShareDB` object to children processes is fine, or you may open the same `ShareDB` instance in parellel for reading. **Parallel writes made in children processes are not safe**; they are not guaranteed to be written, and may corrupt instance. `ShareDB` is primarily developed and tested using **Linux** and is compatible with both **Python 2.7 and 3.8**.
 
-### ShareDB in Action
+### `ShareDB` in Action
 ```python
 >>> from ShareDB import ShareDB           # Easy import
 >>> print(ShareDB.__version__)            # Check version
@@ -72,33 +72,34 @@ True
 ```
 
 ### Installation
-One-shot installation/upgrade from PyPI
+One-shot **installation/upgrade** of `ShareDB` from **PyPI**
 ```bash
 $ pip install ShareDB --upgrade
 ```
-Alternatively, clone the latest version of ShareDB from GitHub
+Alternatively, **clone** `ShareDB` from **GitHub**
 ```bash
 $ git clone github.com/ayaanhossain/ShareDB
 ```
-ShareDB requires the following additional libraries
+`ShareDB` requires the following additional libraries
 - [lmdb](https://pypi.org/project/lmdb/) >= 0.98
 - [msgpack](https://pypi.org/project/msgpack/) >= 0.6.2
 - [configparser](https://pypi.org/project/configparser/) >= 4.0.2
+- [pytest](https://pypi.org/project/pytest/) >= 4.6.9
 
-You can install all of the dependencies from requirement.txt
+You can install all of the **dependencies** from **requirements.txt**
 ```bash
 $ cd ShareDB
 $ pip install -r requirements.txt
 ```
-Next, Install ShareDB 
+Or, you can **install** all dependencies and `ShareDB`
 ```bash
 $ python setup.py install
 ```
-Finally, test your ShareDB installation
+Finally, **test** your `ShareDB` installation with **pytest**
 ```bash
 $ pytest
 ```
-Uninstallation of ShareDB can be done via `pip`
+**Uninstallation** of `ShareDB` is easy with `pip`
 ```bash
 $ pip uninstall ShareDB
 ```
