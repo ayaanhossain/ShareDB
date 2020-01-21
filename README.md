@@ -71,7 +71,7 @@ KeyError: "key=non-existent key of <type 'str'> is absent"
 >>> myDB.drop()                           # Close/delete when you're done
 True
 ```
-`ShareDB` methods either return some data/result up on appropriate query, or a `self` object is returned for pythonic chaining of methods. Exceptionally, the *terminal* methods `.close()` and `.drop()` return a boolean indicating success of their operations.
+`ShareDB` methods either return some data/result up on appropriate query, or a `self` object is returned for pythonic chaining of methods. Exceptionally, the *terminal* methods `.close()` and `.drop()` return a boolean indicating success.
 
 ### Installation
 One-shot **installation/upgrade** of `ShareDB` from **PyPI**
