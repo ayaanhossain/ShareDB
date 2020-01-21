@@ -29,7 +29,7 @@
   <a href="#sharedb-in-action">ShareDB in Action</a> •
   <a href="#installation">Installation</a> •
   <a href="#license">License</a> •
-  <a href="#contribution">Contribution</a> •
+  <a href="#contributing">Contributing</a> •
   <a href="#acknowledgements">Acknowledgements</a> •
   <a href="./API.md">API</a>
 </p>
