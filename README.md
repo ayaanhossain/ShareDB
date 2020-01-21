@@ -64,13 +64,14 @@ KeyError: "key=non-existent key of <type 'str'> is absent"
 17
 >>> list(myDB.multipopitem(num_items=5))  # Or, pop as many items as you need
 [(0, 10), (1, 11), (2, 12), (3, 13), (4, 14)]
->>> myDB.remove(5).length()               # Remove a single key
-4
+>>> myDB.remove(5).remove(6).remove(7).length()               # Chain removal of several keys
+1
 >>> myDB.clear().length()                 # Or, clear entire ShareDB
 0
 >>> myDB.drop()                           # Close/delete when you're done
 True
 ```
+`ShareDB` operates mostly like an idiomatic Python dictionary. Most methods either return some data/result up on appropriate query, or a `self` object is returned for pythonic chaining of methods. Exceptionally, the *terminal* methods `.close()` and `.drop()` return a boolean indicating success of their operations.
 
 ### Installation
 One-shot **installation/upgrade** of `ShareDB` from **PyPI**
@@ -114,20 +115,20 @@ $ pip uninstall ShareDB
 See [LICENSE](./LICENSE) file for more details.
 
 ### Contributing
-To contribute to `ShareDB`, please **fork** this repository, **commit** your code on a **separate branch**, and **submit** a **pull request** following the [Contributor Covenant](https://www.contributor-covenant.org/version/2/0/code_of_conduct). See [COC.md](./docs/COC.md) file for more details.
+We recommend **discussing** any changes you have in mind by first **opening an issue**.
 
-We recommend you to **discuss** any changes you have in mind by first **opening an issue**.
+To contribute to `ShareDB`, please **clone** or **fork** this repository, **commit** your code on a **separate branch**, and **submit** a **pull request** following the [Contributor Covenant](https://www.contributor-covenant.org/version/2/0/code_of_conduct). See [COC.md](./docs/COC.md) file for more details.
 
-Please ensure that **all code modifications** are accompanied by detailed **comments**, **new unit tests** as reasonable, and **pass existing unit tests**.
+Please ensure that **all code modifications** are accompanied by detailed **comments**, **new unit tests** as reasonable, and **pass existing unit tests**.  For versioning, we use [SemVer](https://semver.org/).
 
 ### Acknowledgements
 `ShareDB` is maintained by:
 
  - Ayaan Hossain | [github.com/ayaanhossain](https://github.com/ayaanhossain) | [@bioalgorithmist](https://twitter.com/bioalgorithmist)
 
-`ShareDB` was primarily developed due to scalable data analytics needs at [Prof. Howard Salis](https://twitter.com/hsalis)' Lab at [Penn State University](https://salislab.net/).
+`ShareDB` was primarily developed by Ayaan to meet scalable data analytics needs at [Prof. Howard Salis](https://twitter.com/hsalis)' Lab at [Penn State University](https://salislab.net/).
 
-Prof. Salis has funded the development of `ShareDB`.
+Prof. Salis has funded the initial development of `ShareDB`.
 
 ### API
 `ShareDB` API details can be found in the [API.md](./docs/API.md) file.
