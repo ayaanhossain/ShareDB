@@ -108,7 +108,9 @@ $ pip uninstall ShareDB
 
 ### License
 `ShareDB` (c) 2019-2020 Ayaan Hossain.
+
 `ShareDB` is an **open-source software** under [MIT](https://opensource.org/licenses/MIT) License.
+
 See [LICENSE](./LICENSE) file for more details.
 
 ### Contribution
@@ -119,9 +121,9 @@ We recommend you to **discuss** any changes you have in mind by **opening an iss
 ### Acknowledgements
 `ShareDB` is maintained by:
 
- - Ayaan Hossain | github.com/ayaanhossain | [@bioalgorithmist](https://twitter.com/bioalgorithmist)
+ - Ayaan Hossain | [github.com/ayaanhossain](https://github.com/ayaanhossain) | [@bioalgorithmist](https://twitter.com/bioalgorithmist)
 
-`ShareDB` was primarily developed to serve data analysis needs at [Prof. Howard Salis](https://twitter.com/hsalis)' Lab at [Penn State University](https://salislab.net/). Dr. Salis has funded the development of `ShareDB`.
+`ShareDB` was primarily developed due to scalable data analytics needs at [Prof. Howard Salis](https://twitter.com/hsalis)' Lab at [Penn State University](https://salislab.net/). Dr. Salis has funded the development of `ShareDB`.
 
 ### API
 `ShareDB` API details can be found in the [API.md](./API.md) file.
