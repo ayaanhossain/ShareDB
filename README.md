@@ -30,7 +30,8 @@
   <a href="#installation">Installation</a> •
   <a href="#license">License</a> •
   <a href="#contribution">Contribution</a> •
-  <a href="#api">API</a>
+  <a href="#acknowledgements">Acknowledgements</a> •
+  <a href="./API.md">API</a>
 </p>
 
 `ShareDB` is a lightweight, **persistent key-value store** with a **dictionary-like interface** built on top of [LMDB](https://symas.com/lmdb/). It is intended to replace a python dictionary when
@@ -76,7 +77,7 @@ One-shot **installation/upgrade** of `ShareDB` from **PyPI**
 ```bash
 $ pip install ShareDB --upgrade
 ```
-Alternatively, **clone** `ShareDB` from **GitHub**
+Alternatively, **clone** `ShareDB` from **GitHub** locally
 ```bash
 $ git clone github.com/ayaanhossain/ShareDB
 ```
@@ -86,17 +87,18 @@ $ git clone github.com/ayaanhossain/ShareDB
 - [configparser](https://pypi.org/project/configparser/) >= 4.0.2
 - [pytest](https://pypi.org/project/pytest/) >= 4.6.9
 
-You can install all of the **dependencies** from **requirements.txt**
+You can **install** all **dependencies** from **requirements.txt** inside `/ShareDB/` directory
 ```bash
 $ cd ShareDB
 $ pip install -r requirements.txt
 ```
-Or, you can **install** all dependencies and `ShareDB`
+Or, you can directly **install** all **dependencies** and `ShareDB` via `setup.py`
 ```bash
 $ python setup.py install
 ```
-Finally, **test** your `ShareDB` installation with **pytest**
+You can **test** `ShareDB` installation with **pytest** inside `/ShareDB/tests/` directory
 ```bash
+$ cd tests
 $ pytest
 ```
 **Uninstallation** of `ShareDB` is easy with `pip`
@@ -105,8 +107,21 @@ $ pip uninstall ShareDB
 ```
 
 ### License
+`ShareDB` (c) 2019-2020 Ayaan Hossain.
+`ShareDB` is an **open-source software** under [MIT](https://opensource.org/licenses/MIT) License.
+See [LICENSE](./LICENSE) file for more details.
 
 ### Contribution
+To contribute to `ShareDB`, please **clone** this repository **locally**, **commit** your code on a **separate branch**, and **submit** a **pull request** following the [Contributor Covenant](https://www.contributor-covenant.org/version/2/0/code_of_conduct). See [COC.md](./COC.md) file for more details.
+
+We recommend you to **discuss** any changes you have in mind by **opening an issue** at first. Please ensure that **all code modifications** are accompanied by detailed **comments**, **new unit tests** as reasonable, and **pass existing unit tests**.
+
+### Acknowledgements
+`ShareDB` is maintained by:
+
+ - Ayaan Hossain | github.com/ayaanhossain | [@bioalgorithmist](https://twitter.com/bioalgorithmist)
+
+`ShareDB` was primarily developed to serve data analysis needs at [Prof. Howard Salis](https://twitter.com/hsalis)' Lab at [Penn State University](https://salislab.net/). Dr. Salis has funded the development of `ShareDB`.
 
 ### API
-
+`ShareDB` API details can be found in the [API.md](./API.md) file.
