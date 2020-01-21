@@ -126,7 +126,7 @@ Please ensure that **all code modifications** are accompanied by detailed **comm
 
  - Ayaan Hossain | [github.com/ayaanhossain](https://github.com/ayaanhossain) | [@bioalgorithmist](https://twitter.com/bioalgorithmist)
 
-`ShareDB` was primarily developed by Ayaan to meet scalable data analytics needs at [Prof. Howard Salis](https://twitter.com/hsalis)' Lab at [Penn State University](https://salislab.net/).
+`ShareDB` was primarily written to meet scalable data analytics needs in [Prof. Howard Salis](https://twitter.com/hsalis)' Lab at [Penn State University](https://salislab.net/).
 
 Prof. Salis has funded the initial development of `ShareDB`.
 
