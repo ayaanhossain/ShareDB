@@ -47,7 +47,7 @@ class ShareDB(object):
     Python 2.7 and 3.8.
     '''
 
-    __version__ = '0.2.4'
+    __version__ = '0.2.5'
 
     __author__ = 'Ayaan Hossain'
 
@@ -1207,7 +1207,7 @@ class ShareDB(object):
         close test cases.
 
         >>> myDB = ShareDB(path='./test_close.ShareDB', reset=True)
-        >>> for i in range(10): myDB[range(i, i+5)] = range(i+5, i+10)
+        >>> for i in range(10): myDB[list(range(i, i+5))] = list(range(i+5, i+10))
         >>> len(myDB)
         10
         >>> myDB.close()
