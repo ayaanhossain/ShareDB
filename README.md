@@ -71,7 +71,7 @@ KeyError: "key=non-existent key of <type 'str'> is absent"
 >>> myDB.drop()                           # Close/delete when you're done
 True
 ```
-`ShareDB` methods either return some data/result up on appropriate query, or a `self` object is returned for pythonic chaining of methods. Exceptionally, the *terminal* methods `.close()` and `.drop()` return a boolean indicating success.
+`ShareDB` methods either return data/result up on appropriate query, or a `self` object is returned to facilitate method chaining. Terminal methods `.close()` and `.drop()` return a boolean indicating success.
 
 ### Installation
 One-shot **installation/upgrade** of `ShareDB` from **PyPI**
@@ -115,16 +115,16 @@ $ pip uninstall ShareDB
 See [LICENSE](./LICENSE) file for more details.
 
 ### Contributing
-We recommend **discussing** any issues/bugs you're facing, or any changes you have in mind by first **opening an issue**, following the [Contributor Covenant](https://www.contributor-covenant.org/version/2/0/code_of_conduct). See [COC.md](./docs/COC.md) file for more details.
+We recommend **discussing** any issues/bugs you're facing, or any changes you have in mind by first **opening an issue**, following the [Contributor Covenant](https://www.contributor-covenant.org/version/2/0/code_of_conduct). See [COC.md](./docs/COC.md) file for more details. Please provide detailed **information**, and code **snippets** to facilitate debugging.
 
-To contribute to `ShareDB`, please **clone** or **fork** this repository, **commit** your code on a **separate branch**, and **submit** a **pull request**. We expect **all code modifications** to be accompanied by detailed **comments**, **new unit tests** as reasonable, and **pass existing unit tests**.  For versioning, we use [SemVer](https://semver.org/).
+To contribute to `ShareDB`, please **clone** or **fork** this repository, **commit** your code on a **separate branch**, and **submit** a **pull request**. **Code modifications** must be accompanied by detailed **comments**, **new unit tests** as reasonable, and the newer build must **pass existing unit tests**.  For versioning, we use [SemVer](https://semver.org/).
 
 ### Acknowledgements
 `ShareDB` is maintained by:
 
  - Ayaan Hossain | [github.com/ayaanhossain](https://github.com/ayaanhossain) | [@bioalgorithmist](https://twitter.com/bioalgorithmist)
 
-`ShareDB` was primarily written to meet scalable data analytics needs in [Prof. Howard Salis](https://twitter.com/hsalis)' Lab at [Penn State University](https://salislab.net/).
+`ShareDB` was primarily written to meet data analytics needs in [Prof. Howard Salis](https://twitter.com/hsalis)' Lab at [Penn State University](https://salislab.net/).
 
 Prof. Salis has funded the initial development of `ShareDB`.
 
