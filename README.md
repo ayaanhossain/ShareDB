@@ -80,7 +80,7 @@ $ pip install ShareDB --upgrade
 ```
 Alternatively, **clone** `ShareDB` from **GitHub** locally
 ```bash
-$ git clone github.com/ayaanhossain/ShareDB
+$ git clone https://github.com/ayaanhossain/ShareDB
 ```
 `ShareDB` requires the following additional libraries
 - [lmdb](https://pypi.org/project/lmdb/) >= 0.98
