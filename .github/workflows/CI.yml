@@ -21,8 +21,10 @@ jobs:
         pip install configparser
         pip install msgpack
         pip install lmdb
+        pip install codecov
     - name: Test with doctest
       run: |
         cd ./ShareDB/
         python ShareDB.py -v
+        codecov
 
