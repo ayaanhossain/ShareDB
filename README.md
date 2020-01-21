@@ -3,23 +3,23 @@
 </h1>
 
 <p align="center">
-	<a href="https://img.shields.io/badge/version-0.1.6-blue">
-	    <img src="https://img.shields.io/badge/version-0.1.6-blue"
-	     alt="version-badge">
-    </a>
-	<a href="https://github.com/ayaanhossain/ShareDB/workflows/CI/badge.svg">
-	    <img src="https://github.com/ayaanhossain/ShareDB/workflows/CI/badge.svg"
+	<a href="https://github.com/ayaanhossain/ShareDB/actions">
+	    <img src="https://github.com/ayaanhossain/ShareDB/workflows/build/badge.svg"
 	     alt="CI-badge">
     </a>
 	<a href="https://codecov.io/gh/ayaanhossain/ShareDB">
 		<img src="https://codecov.io/gh/ayaanhossain/ShareDB/branch/master/graph/badge.svg?token=syTKRG9H8O"
 		 alt="codecov-badge">
     </a>
-	<a href="https://img.shields.io/badge/python-2.7%20and%203.8-blue">
-	    <img src="https://img.shields.io/badge/python-2.7%20and%203.8-blue"
+	<a href="https://img.shields.io/badge/version-0.1.6-blue">
+		<img src="https://img.shields.io/badge/version-0.1.6-blue"
+		 alt="version-badge">
+	</a>
+	<a href="https://img.shields.io/badge/python-2.7%20%7C%203.8-blue">
+	    <img src="https://img.shields.io/badge/python-2.7%20%7C%203.8-blue"
 	     alt="python-badge">
     </a>
-	<a href="https://img.shields.io/badge/license-MIT-yellow">
+	<a href="./LICENSE">
 	    <img src="https://img.shields.io/badge/license-MIT-yellow"
 	     alt="license-badge">
     </a>

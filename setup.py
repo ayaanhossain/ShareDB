@@ -23,7 +23,7 @@ setup(
     
     long_description=long_description,
     
-    long_description_content_type='text/markdown',
+    long_description_content_type='text/markdown/html',
     
     url='https://github.com/ayaanhossain/ShareDB',
     
@@ -55,7 +55,7 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
     ],
-    keywords='LMDB key-value store parallel data share',
+    keywords='lmdb embedded key value store parallel data share read multiprocessing',
 
     packages=['ShareDB'],
 
@@ -64,7 +64,7 @@ setup(
     install_requires=['lmdb>=0.98', 'msgpack>=0.6.2', 'configparser>=4.0.2', 'pytest>=4.6.9'],
 
     project_urls={  # Optional
-        'Bug Reports': 'https://github.com/pypa/sampleproject/issues',
-        'Source'     : 'https://github.com/pypa/sampleproject/',
+        'Bug Reports': 'https://github.com/ayaanhossain/ShareDB/issues',
+        'Source'     : 'https://github.com/ayaanhossain/ShareDB/',
     },
 )
