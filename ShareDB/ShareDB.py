@@ -47,7 +47,7 @@ class ShareDB(object):
     Python 2.7 and 3.8.
     '''
 
-    __version__ = '0.2.2'
+    __version__ = '0.2.3'
 
     __author__ = 'Ayaan Hossain'
 
@@ -201,7 +201,8 @@ class ShareDB(object):
                     map_size,    type(map_size),
                     E))
 
-    def _trim_suffix(self, given_str, suffix):
+    @staticmethod
+    def _trim_suffix(given_str, suffix):
         '''
         Internal helper function to trim suffixes in given_str.
         '''
@@ -209,7 +210,8 @@ class ShareDB(object):
             return given_str[:-len(suffix)]
         return given_str
 
-    def _clear_path(self, path):
+    @staticmethod
+    def _clear_path(path):
         '''
         Internal helper function to clear given path.
         '''
@@ -218,7 +220,8 @@ class ShareDB(object):
         elif os.path.exists(path):
             os.remove(path)
 
-    def _store_config(self, path, serial, buffer_size, map_size, readers):
+    @staticmethod
+    def _store_config(path, serial, buffer_size, map_size, readers):
         '''
         Internal helper funtion to create ShareDB configuration file.
         '''
@@ -233,7 +236,17 @@ class ShareDB(object):
             config.write(config_file)
         return config
 
-    def _get_serialization_functions(self, serial):
+    @staticmethod
+    def _load_config(path):
+        '''
+        Internal helper funtion to load ShareDB configuration file.
+        '''
+        config = configparser.RawConfigParser()
+        config.read(path+'ShareDB.config')
+        return config
+
+    @staticmethod
+    def _get_serialization_functions(serial):
         '''
         Internal helper function to decide (un)packing functions.
         '''
@@ -248,13 +261,14 @@ class ShareDB(object):
             UNPACK = lambda x: pickle.loads(x)
         return PACK, UNPACK
 
-    def _load_config(self, path):
-        '''
-        Internal helper funtion to load ShareDB configuration file.
-        '''
-        config = configparser.RawConfigParser()
-        config.read(path+'ShareDB.config')
-        return config
+    def _alivemethod(method):
+        def wrapper(self, *args, **kwargs):
+            if self.ALIVE:
+                return method(self, *args, **kwargs)
+            else:
+                raise Exception(
+                    'Access to {} has been closed or dropped'.format(repr(self)))
+        return wrapper
 
     def __repr__(self):
         '''
@@ -420,6 +434,7 @@ class ShareDB(object):
         self._trigger_sync()
         return None
 
+    @_alivemethod
     def multiset(self, kv_iter):
         '''
         User function to insert/update multiple key-value pairs into ShareDB instance.
@@ -468,6 +483,7 @@ class ShareDB(object):
                     'Given kv_iter={} of {}, raised: {}'.format(kv_iter, type(kv_iter), E))
         return self
 
+    @_alivemethod
     def set(self, key, val):
         '''
         User function to insert/overwrite a key-value pair into ShareDB instance.
@@ -518,6 +534,7 @@ class ShareDB(object):
         '''
         return self.set(key=key, val=val)
 
+    @_alivemethod
     def length(self):
         '''
         User function to return the number of items stored in ShareDB.
@@ -587,6 +604,7 @@ class ShareDB(object):
             return default
         return self._get_unpacked_val(val)
 
+    @_alivemethod
     def get(self, key, default=None):
         '''
         User function to query value for a given key else return default.
@@ -650,6 +668,7 @@ class ShareDB(object):
                 'key={} of {} is absent'.format(key, type(key)))
         return val
 
+    @_alivemethod
     def multiget(self, key_iter, default=None):
         '''
         User function to return an iterator of values for a given iterable of keys.
@@ -683,6 +702,7 @@ class ShareDB(object):
                     'Given key_iter={} of {}, raised: {}'.format(
                         key_iter, type(key_iter), E))
 
+    @_alivemethod
     def has_key(self, key):
         '''
         User function to check existence of given key in ShareDB.
@@ -774,6 +794,7 @@ class ShareDB(object):
         self._trigger_sync()
         return val
 
+    @_alivemethod
     def multiremove(self, key_iter):
         '''
         User function to remove all key-value pairs specified in the iterable of keys.
@@ -807,6 +828,7 @@ class ShareDB(object):
                         key_iter, type(key_iter), E))
         return self
 
+    @_alivemethod
     def remove(self, key):
         '''
         User function to remove a key-value pair.
@@ -857,6 +879,7 @@ class ShareDB(object):
         '''
         return self.remove(key=key)
 
+    @_alivemethod
     def multipop(self, key_iter, default=None):
         '''
         User function to return an iterator of popped values for a given iterable of keys.
@@ -896,6 +919,7 @@ class ShareDB(object):
                     'Given key_iter={} of {}, raised: {}'.format(
                         key_iter, type(key_iter), E))
 
+    @_alivemethod
     def pop(self, key, default=None):
         '''
         User function to pop a key and return its value.
@@ -973,6 +997,7 @@ class ShareDB(object):
                         raise Exception(
                             'All four params to _iter_on_disk_kv cannot be False or None')
 
+    @_alivemethod
     def items(self):
         '''
         User function to iterate over key-value pairs in ShareDB.
@@ -997,6 +1022,7 @@ class ShareDB(object):
         return self._iter_on_disk_kv(
             yield_key=True, unpack_key=True, yield_val=True, unpack_val=True)
 
+    @_alivemethod
     def keys(self):
         '''
         User function to iterate over keys in ShareDB.
@@ -1020,6 +1046,7 @@ class ShareDB(object):
         '''
         return self._iter_on_disk_kv(yield_key=True, unpack_key=True)
 
+    @_alivemethod
     def values(self):
         '''
         User function to iterate over values in ShareDB.
@@ -1043,6 +1070,7 @@ class ShareDB(object):
         '''
         return self._iter_on_disk_kv(yield_val=True, unpack_val=True)
 
+    @_alivemethod
     def multipopitem(self, num_items=None):
         '''
         User function to pop over key-value pairs in ShareDB.
@@ -1090,6 +1118,7 @@ class ShareDB(object):
                     self._del_pop_from_disk(
                         key=item_key, txn=itempopper, opr='pop', packed=True)
 
+    @_alivemethod
     def popitem(self):
         '''
         User function to pop a single key-value pairs in ShareDB.
@@ -1115,6 +1144,7 @@ class ShareDB(object):
                             key=item_key, txn=itempopper, opr='pop', packed=True)
         return key, val
 
+    @_alivemethod
     def sync(self):
         '''
         User function to flush ShareDB inserts/changes/commits on to disk.
@@ -1132,6 +1162,7 @@ class ShareDB(object):
             to_drop = self.DB.open_db()
             dropper.drop(db=to_drop, delete=drop_DB)
 
+    @_alivemethod
     def clear(self):
         '''
         User function to remove all data stored in a ShareDB instance.
@@ -1184,7 +1215,7 @@ class ShareDB(object):
         False
         >>> 1 in myDB
         Traceback (most recent call last):
-        Error: Attempt to operate on closed/deleted/dropped object.
+        Exception: Access to ShareDB instantiated from ./test_close.ShareDB/ has been closed or dropped
         >>> myDB = ShareDB(path='./test_close.ShareDB', reset=False)
         >>> myDB.drop()
         True
@@ -1214,7 +1245,7 @@ class ShareDB(object):
         False
         >>> 0 in myDB
         Traceback (most recent call last):
-        Error: Attempt to operate on closed/deleted/dropped object.
+        Exception: Access to ShareDB instantiated from ./test_drop.ShareDB/ has been closed or dropped
         >>> myDB = ShareDB(path='./test_drop.ShareDB', reset=False)
         >>> len(myDB)
         0
