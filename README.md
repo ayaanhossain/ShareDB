@@ -86,7 +86,7 @@ $ git clone https://github.com/ayaanhossain/ShareDB
 - [lmdb](https://pypi.org/project/lmdb/) >= 0.98
 - [msgpack](https://pypi.org/project/msgpack/) >= 0.6.2
 - [configparser](https://pypi.org/project/configparser/) >= 4.0.2
-- [pytest](https://pypi.org/project/pytest/) >= 4.6.9
+- [pytest-cov](https://pypi.org/project/pytest-cov/) >= 2.8.1
 
 You can **install** all **dependencies** from **requirements.txt** inside `/ShareDB/` directory
 ```bash
