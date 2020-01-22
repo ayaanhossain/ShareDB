@@ -61,7 +61,7 @@ setup(
 
     python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4',
 
-    install_requires=['lmdb>=0.98', 'msgpack>=0.6.2', 'configparser>=4.0.2', 'pytest>=4.6.9'],
+    install_requires=['lmdb>=0.98', 'msgpack>=0.6.2', 'configparser>=4.0.2', 'pytest-cov>=2.8.1'],
 
     project_urls={  # Optional
         'Bug Reports': 'https://github.com/ayaanhossain/ShareDB/issues',
