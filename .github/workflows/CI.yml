@@ -20,9 +20,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install codecov
-    - name: Install ShareDB
-      run: |
-        python setup.py install
     - name: Generate coverage report
       run: |
         pytest --cov=./ --cov-report=xml
