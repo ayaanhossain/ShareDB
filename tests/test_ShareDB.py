@@ -10,12 +10,16 @@ def test_ShareDB_instantiation_fails():
     '''
     with pytest.raises(TypeError) as error:
         myDB = ShareDB()
+    with pytest.raises(TypeError) as error:
         myDB = ShareDB(path=True)
+    with pytest.raises(TypeError) as error:
         myDB = ShareDB(path=123)
+    with pytest.raises(TypeError) as error:
         myDB = ShareDB(
             path='./test_init.ShareDB',
             reset=True,
             serial='something_fancy')
+    with pytest.raises(TypeError) as error:
         myDB = ShareDB(
             path='./test_init.ShareDB',
             reset=True,
@@ -73,9 +77,13 @@ def test_set_and_get(msgpack_myDB, pickle_myDB):
     # Sets that raise Exception
     with pytest.raises(TypeError) as error:
         msgpack_myDB.set(key=set(['msgpack', 'can', 'store', 'sets']), val=False)
+    with pytest.raises(TypeError) as error:
         msgpack_myDB.set('None cannot be values', None)
+    with pytest.raises(TypeError) as error:
         msgpack_myDB.set(None, 'None cannot be keys')
+    with pytest.raises(TypeError) as error:
         pickle_myDB.set('None cannot be values', None)
+    with pytest.raises(TypeError) as error:
         pickle_myDB.set(None, 'None cannot be keys')
 
     # Successful gets
@@ -88,6 +96,7 @@ def test_set_and_get(msgpack_myDB, pickle_myDB):
     # Gets that raise Exception
     with pytest.raises(TypeError) as error:
         msgpack_myDB.get(key=None)
+    with pytest.raises(TypeError) as error:
         pickle_myDB[None]
 
 
