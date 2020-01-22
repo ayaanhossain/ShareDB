@@ -21,7 +21,6 @@ jobs:
         pip install -r requirements.txt
     - name: Install ShareDB
       run: |
-        cd ./ShareDB/
         python setup.py install
     - name: Generate coverage report
       run: |
