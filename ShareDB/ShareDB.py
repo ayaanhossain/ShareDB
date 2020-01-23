@@ -47,7 +47,7 @@ class ShareDB(object):
     Python 2.7 and 3.8.
     '''
 
-    __version__ = '0.2.5'
+    __version__ = '0.2.6'
 
     __author__ = 'Ayaan Hossain'
 
@@ -442,56 +442,6 @@ class ShareDB(object):
         return None
 
     @alivemethod
-    def multiset(self, kv_iter):
-        '''
-        User function to insert/update multiple key-value pairs into ShareDB instance.
-
-        :: kv_iter - a valid key-value iterator to populate ShareDB
-
-        multiset test cases.
-
-        >>> myDB = ShareDB(path='./test_multi_set.ShareDB', reset=True)
-        >>> kv_generator = ((tuple(range(i, i+5)), range(i+5, i+10)) for i in range(10))
-        >>> myDB.multiset(kv_iter=kv_generator).sync().length()
-        10
-        >>> myDB = ShareDB(path='./test_multi_set.ShareDB', reset=False)
-        >>> len(myDB)
-        10
-        >>> kv_generator = ((tuple(range(i, i+5)), range(i+5, i+10)) for i in range(3000, 3005))
-        >>> myDB.multiset(kv_iter=kv_generator)
-        ShareDB instantiated from ./test_multi_set.ShareDB/
-        >>> len(myDB)
-        15
-        >>> for i in range(3005, 3010): myDB[tuple(range(i, i+5))] = range(i+5, i+10)
-        >>> len(myDB)
-        20
-        >>> myDB.close()
-        True
-        >>> myDB = ShareDB(path='./test_multi_set.ShareDB', reset=False)
-        >>> len(myDB)
-        20
-        >>> myDB[tuple(range(3005, 3010))] == range(3010, 3015)
-        True
-        >>> myDB[tuple(range(1))] = set(range(1))
-        Traceback (most recent call last):
-        Exception: Given value=set([0]) of <type 'set'>, raised: can not serialize 'set' object
-        >>> myDB[set(range(1))] = range(1)
-        Traceback (most recent call last):
-        Exception: Given key=set([0]) of <type 'set'>, raised: can not serialize 'set' object
-        >>> myDB.drop()
-        True
-        '''
-        with self.DB.begin(write=True) as kvsetter:
-            try:
-                for key, val in kv_iter:
-                    self._insert_kv_in_txn(key=key, val=val, txn=kvsetter)
-            except Exception as E:
-                raise Exception(
-                    'Given kv_iter={} of {}, raised: {}'.format(
-                        kv_iter, type(kv_iter), E))
-        return self
-
-    @alivemethod
     def set(self, key, val):
         '''
         User function to insert/overwrite a key-value pair into ShareDB instance.
@@ -541,6 +491,56 @@ class ShareDB(object):
         True
         '''
         return self.set(key=key, val=val)
+
+    @alivemethod
+    def multiset(self, kv_iter):
+        '''
+        User function to insert/update multiple key-value pairs into ShareDB instance.
+
+        :: kv_iter - a valid key-value iterator to populate ShareDB
+
+        multiset test cases.
+
+        >>> myDB = ShareDB(path='./test_multi_set.ShareDB', reset=True)
+        >>> kv_generator = ((tuple(range(i, i+5)), range(i+5, i+10)) for i in range(10))
+        >>> myDB.multiset(kv_iter=kv_generator).sync().length()
+        10
+        >>> myDB = ShareDB(path='./test_multi_set.ShareDB', reset=False)
+        >>> len(myDB)
+        10
+        >>> kv_generator = ((tuple(range(i, i+5)), range(i+5, i+10)) for i in range(3000, 3005))
+        >>> myDB.multiset(kv_iter=kv_generator)
+        ShareDB instantiated from ./test_multi_set.ShareDB/
+        >>> len(myDB)
+        15
+        >>> for i in range(3005, 3010): myDB[tuple(range(i, i+5))] = range(i+5, i+10)
+        >>> len(myDB)
+        20
+        >>> myDB.close()
+        True
+        >>> myDB = ShareDB(path='./test_multi_set.ShareDB', reset=False)
+        >>> len(myDB)
+        20
+        >>> myDB[tuple(range(3005, 3010))] == range(3010, 3015)
+        True
+        >>> myDB[tuple(range(1))] = set(range(1))
+        Traceback (most recent call last):
+        Exception: Given value=set([0]) of <type 'set'>, raised: can not serialize 'set' object
+        >>> myDB[set(range(1))] = range(1)
+        Traceback (most recent call last):
+        Exception: Given key=set([0]) of <type 'set'>, raised: can not serialize 'set' object
+        >>> myDB.drop()
+        True
+        '''
+        with self.DB.begin(write=True) as kvsetter:
+            try:
+                for key, val in kv_iter:
+                    self._insert_kv_in_txn(key=key, val=val, txn=kvsetter)
+            except Exception as E:
+                raise Exception(
+                    'Given kv_iter={} of {}, raised: {}'.format(
+                        kv_iter, type(kv_iter), E))
+        return self
 
     @alivemethod
     def length(self):
@@ -636,6 +636,7 @@ class ShareDB(object):
         ShareDB instantiated from ./test_get_dunder.ShareDB/
         >>> myDB.get(key=81, default='SENTINEL')
         'SENTINEL'
+        >>> myDB.get(key=81)
         >>> myDB.drop()
         True
         '''
@@ -804,40 +805,6 @@ class ShareDB(object):
         return val
 
     @alivemethod
-    def multiremove(self, key_iter):
-        '''
-        User function to remove all key-value pairs specified in the iterable of keys.
-
-        :: key_iter - a valid iterable of keys to be deleted from ShareDB
-
-        multiremove test cases.
-
-        >>> myDB = ShareDB(path='./test_multiremove.ShareDB', reset=True, serial='pickle')
-        >>> for i in range(100): myDB[i] = i**2
-        >>> len(myDB)
-        100
-        >>> myDB.close()
-        True
-        >>> myDB = ShareDB(path='./test_multiremove.ShareDB', reset=False)
-        >>> myDB.multiremove(range(100)).length()
-        0
-        >>> 0 in myDB
-        False
-        >>> myDB.drop()
-        True
-        '''
-        with self.DB.begin(write=True) as keydeler:
-            try:
-                for key in key_iter:
-                    self._del_pop_from_disk(
-                        key=key, txn=keydeler, opr='del', packed=False)
-            except Exception as E:
-                raise Exception(
-                    'Given key_iter={} of {}, raised: {}'.format(
-                        key_iter, type(key_iter), E))
-        return self
-
-    @alivemethod
     def remove(self, key):
         '''
         User function to remove a key-value pair.
@@ -889,6 +856,73 @@ class ShareDB(object):
         return self.remove(key=key)
 
     @alivemethod
+    def multiremove(self, key_iter):
+        '''
+        User function to remove all key-value pairs specified in the iterable of keys.
+
+        :: key_iter - a valid iterable of keys to be deleted from ShareDB
+
+        multiremove test cases.
+
+        >>> myDB = ShareDB(path='./test_multiremove.ShareDB', reset=True, serial='pickle')
+        >>> for i in range(100): myDB[i] = i**2
+        >>> len(myDB)
+        100
+        >>> myDB.close()
+        True
+        >>> myDB = ShareDB(path='./test_multiremove.ShareDB', reset=False)
+        >>> myDB.multiremove(range(100)).length()
+        0
+        >>> 0 in myDB
+        False
+        >>> myDB.drop()
+        True
+        '''
+        with self.DB.begin(write=True) as keydeler:
+            try:
+                for key in key_iter:
+                    self._del_pop_from_disk(
+                        key=key, txn=keydeler, opr='del', packed=False)
+            except Exception as E:
+                raise Exception(
+                    'Given key_iter={} of {}, raised: {}'.format(
+                        key_iter, type(key_iter), E))
+        return self
+
+    @alivemethod
+    def pop(self, key, default=None):
+        '''
+        User function to pop a key and return its value.
+
+        :: key - a valid key to be deleted from ShareDB
+
+        pop test cases.
+
+        >>> myDB = ShareDB(path='./test_pop.ShareDB', reset=True)
+        >>> for i in range(100): myDB[i] = [i**0.5]
+        >>> len(myDB)
+        100
+        >>> myDB.close()
+        True
+        >>> myDB = ShareDB(path='./test_pop', reset=False)
+        >>> myDB.pop(49)
+        [7.0]
+        >>> 49 in myDB
+        False
+        >>> len(myDB)
+        99
+        >>> myDB.pop(49)
+        Traceback (most recent call last):
+        KeyError: "key=49 of <type 'int'> is absent"
+        >>> myDB.drop()
+        True
+        '''
+        with self.DB.begin(write=True) as keypopper:
+            val = self._del_pop_from_disk(
+                key=key, txn=keypopper, opr='pop', packed=False)
+        return val
+
+    @alivemethod
     def multipop(self, key_iter, default=None):
         '''
         User function to return an iterator of popped values for a given iterable of keys.
@@ -927,39 +961,6 @@ class ShareDB(object):
                 raise Exception(
                     'Given key_iter={} of {}, raised: {}'.format(
                         key_iter, type(key_iter), E))
-
-    @alivemethod
-    def pop(self, key, default=None):
-        '''
-        User function to pop a key and return its value.
-
-        :: key - a valid key to be deleted from ShareDB
-
-        pop test cases.
-
-        >>> myDB = ShareDB(path='./test_pop.ShareDB', reset=True)
-        >>> for i in range(100): myDB[i] = [i**0.5]
-        >>> len(myDB)
-        100
-        >>> myDB.close()
-        True
-        >>> myDB = ShareDB(path='./test_pop', reset=False)
-        >>> myDB.pop(49)
-        [7.0]
-        >>> 49 in myDB
-        False
-        >>> len(myDB)
-        99
-        >>> myDB.pop(49)
-        Traceback (most recent call last):
-        KeyError: "key=49 of <type 'int'> is absent"
-        >>> myDB.drop()
-        True
-        '''
-        with self.DB.begin(write=True) as keypopper:
-            val = self._del_pop_from_disk(
-                key=key, txn=keypopper, opr='pop', packed=False)
-        return val
 
     def _iter_on_disk_kv(self, yield_key=False, unpack_key=False, yield_val=False, unpack_val=False):
         '''
@@ -1080,6 +1081,32 @@ class ShareDB(object):
         return self._iter_on_disk_kv(yield_val=True, unpack_val=True)
 
     @alivemethod
+    def popitem(self):
+        '''
+        User function to pop a single key-value pairs in ShareDB.
+
+        popitem test cases.
+
+        >>> myDB = ShareDB(path='./test_popitem.ShareDB', reset=True)
+        >>> myDB.multiset((i,i**2) for i in range(10, 20)).length()
+        10
+        >>> myDB.close()
+        True
+        >>> myDB = ShareDB(path='./test_popitem', reset=False)
+        >>> myDB.popitem()
+        (10, 100)
+        >>> myDB.drop()
+        True
+        '''
+        curr_key = self._iter_on_disk_kv(yield_key=True, unpack_key=False)
+        item_key = next(curr_key)
+        with self.DB.begin(write=True) as itempopper:
+            key, val = self._get_unpacked_key(key=item_key), \
+                       self._del_pop_from_disk(
+                            key=item_key, txn=itempopper, opr='pop', packed=True)
+        return key, val
+
+    @alivemethod
     def multipopitem(self, num_items=None):
         '''
         User function to pop over key-value pairs in ShareDB.
@@ -1126,32 +1153,6 @@ class ShareDB(object):
                 yield self._get_unpacked_key(key=item_key), \
                     self._del_pop_from_disk(
                         key=item_key, txn=itempopper, opr='pop', packed=True)
-
-    @alivemethod
-    def popitem(self):
-        '''
-        User function to pop a single key-value pairs in ShareDB.
-
-        popitem test cases.
-
-        >>> myDB = ShareDB(path='./test_popitem.ShareDB', reset=True)
-        >>> myDB.multiset((i,i**2) for i in range(10, 20)).length()
-        10
-        >>> myDB.close()
-        True
-        >>> myDB = ShareDB(path='./test_popitem', reset=False)
-        >>> myDB.popitem()
-        (10, 100)
-        >>> myDB.drop()
-        True
-        '''
-        curr_key = self._iter_on_disk_kv(yield_key=True, unpack_key=False)
-        item_key = next(curr_key)
-        with self.DB.begin(write=True) as itempopper:
-            key, val = self._get_unpacked_key(key=item_key), \
-                       self._del_pop_from_disk(
-                            key=item_key, txn=itempopper, opr='pop', packed=True)
-        return key, val
 
     @alivemethod
     def sync(self):

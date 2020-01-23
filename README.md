@@ -1,5 +1,7 @@
 ﻿<h1 align="center">
-    <img src="./logo/logo.svg"  alt="ShareDB" width="250"/>
+	<a href="https://github.com/ayaanhossain/ShareDB/">
+		<img src="./logo/logo.svg"  alt="ShareDB" width="250"/>
+    </a>
 </h1>
 
 <p align="center">
@@ -18,6 +20,10 @@
 	<a href="https://img.shields.io/badge/python-2.7%20%7C%203.8-blue">
 	    <img src="https://img.shields.io/badge/python-2.7%20%7C%203.8-blue"
 	     alt="python-badge">
+    </a>
+    <a href="https://img.shields.io/badge/os-Linux-9cf">
+	    <img src="https://img.shields.io/badge/os-Linux-9cf"
+	     alt="os-badge">
     </a>
 	<a href="./LICENSE">
 	    <img src="https://img.shields.io/badge/license-MIT-yellow"
@@ -51,7 +57,7 @@ Sending a `ShareDB` object to children processes is fine, or you may open the sa
 >>> myDB['Name'] = ['Ayaan Hossain']      # Insert information
 >>> myDB.get(key='Name')                  # Retrieve values
 ['Ayaan Hossain']
->>> # Pythonic insertion/update of multiple items
+>>> # Accelerated batch insertion/update via a single transaction
 >>> len(myDB.multiset(kv_iter=zip(range(0, 10), range(10, 20))).sync())
 11
 >>> 7 in myDB                             # Membership queries work
@@ -73,12 +79,16 @@ True
 ```
 `ShareDB` methods either return data/result up on appropriate query, or a `self` object is returned to facilitate method chaining. Terminal methods `.close()` and `.drop()` return a boolean indicating success.
 
+Please checkout example scripts inside the `/examples/` directory for toy applications using `ShareDB`. Running the example scripts might require installation of additional libraries, as described inside the scripts.
+
+Please checkout the [API.md](./docs/API.md) file for API details.
+
 ### Installation
 One-shot **installation/upgrade** of `ShareDB` from **PyPI**
 ```bash
 $ pip install ShareDB --upgrade
 ```
-Alternatively, **clone** `ShareDB` from **GitHub** locally
+Alternatively, **clone** `ShareDB` from **GitHub**
 ```bash
 $ git clone https://github.com/ayaanhossain/ShareDB
 ```
@@ -97,7 +107,7 @@ Or, you can directly **install** all **dependencies** and `ShareDB` via `setup.p
 ```bash
 $ python setup.py install
 ```
-You can **test** `ShareDB` installation with **pytest** inside `/ShareDB/tests/` directory
+You can **test** `ShareDB` with **pytest** inside the `/tests/` directory
 ```bash
 $ cd tests
 $ pytest
@@ -115,9 +125,9 @@ $ pip uninstall ShareDB
 See [LICENSE](./LICENSE) file for more details.
 
 ### Contributing
-We recommend **discussing** any issues/bugs you're facing, or any changes you have in mind by first **opening an issue**, following the [Contributor Covenant](https://www.contributor-covenant.org/version/2/0/code_of_conduct). See [COC.md](./docs/COC.md) file for more details. Please provide detailed **information**, and code **snippets** to facilitate debugging.
+We recommend **discussing** any issues/bugs you're facing, or any changes/enhancements you have in mind by first **opening an issue**, following the [Contributor Covenant](https://www.contributor-covenant.org/version/2/0/code_of_conduct). See [COC.md](./docs/COC.md) file for details. Please provide detailed **information**, and code **snippets** to facilitate debugging.
 
-To contribute to `ShareDB`, please **clone** or **fork** this repository, **commit** your code on a **separate branch**, and **submit** a **pull request**. **Code modifications** must be accompanied by detailed **comments**, **new unit tests** as reasonable, and the newer build must **pass existing unit tests**.  For versioning, we use [SemVer](https://semver.org/).
+To contribute to `ShareDB`, please **clone** or **fork** this repository, **commit** your code on a **separate branch**, and **submit** a **pull request**. All **code modifications** must be accompanied with detailed **comments** and **new unit tests** as reasonable. Please ensure that modified builds **pass existing unit tests**.  For versioning, we use [SemVer](https://semver.org/).
 
 ### Acknowledgements
 `ShareDB` is maintained by:

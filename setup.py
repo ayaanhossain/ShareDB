@@ -55,7 +55,7 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
     ],
-    keywords='lmdb embedded key value store parallel data share read multiprocessing',
+    keywords='lmdb embedded key value store parallel data share read multiprocessing db',
 
     packages=['ShareDB'],
 
