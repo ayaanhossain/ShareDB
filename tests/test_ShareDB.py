@@ -107,10 +107,10 @@ def test_set_and_get(msgpack_myDB, pickle_myDB, total):
     # Successful random sets
     verification = {}
     while len(verification) < total:
-        msg_key = gri_stream.next()
-        msg_val = gri_stream.next()
-        pkl_key = gri_stream.next()
-        pkl_val = gri_stream.next()
+        msg_key = next(gri_stream)
+        msg_val = next(gri_stream)
+        pkl_key = next(gri_stream)
+        pkl_val = next(gri_stream)
         if msg_key in verification:
             verification.pop(msg_key)
         elif pkl_key in verification:
@@ -145,14 +145,14 @@ def test_set_and_get(msgpack_myDB, pickle_myDB, total):
 
     # Reset random
     gri_stream = gri(seed=seed)
-    new_path = gri_stream.next()
+    new_path = next(gri_stream)
 
     # Successful random gets
     for _ in range(total):
-        msg_key = gri_stream.next()
-        msg_val = gri_stream.next()
-        pkl_key = gri_stream.next()
-        pkl_val = gri_stream.next()
+        msg_key = next(gri_stream)
+        msg_val = next(gri_stream)
+        pkl_key = next(gri_stream)
+        pkl_val = next(gri_stream)
         if (msg_key in verification) and (pkl_key in verification):
             assert msgpack_myDB[msg_key]        == verification[msg_key] == msg_val
             assert pickle_myDB.get(key=pkl_key) == verification[pkl_key] == pkl_val
@@ -179,16 +179,16 @@ def test_multiset_and_multiget(msgpack_myDB, pickle_myDB, total):
 
     # Successful random multisets
     msgpack_myDB.multiset(kv_iter=(
-        ((i, [gri_stream.next(), gri_stream.next(), gri_stream.next()]) \
+        ((i, [next(gri_stream), next(gri_stream), next(gri_stream)]) \
             for i in range(total))))
     pickle_myDB.multiset(kv_iter=(
-        ((i, set([gri_stream.next(), gri_stream.next(), gri_stream.next()])) \
+        ((i, set([next(gri_stream), next(gri_stream), next(gri_stream)])) \
             for i in range(total))))
 
     # multisets that raise Exception
     with pytest.raises(Exception) as error:
         msgpack_myDB.multiset(kv_iter=(
-            ((i, set([gri_stream.next(), gri_stream.next(), gri_stream.next()])) \
+            ((i, set([next(gri_stream), next(gri_stream), next(gri_stream)])) \
                 for i in range(total))))
     with pytest.raises(Exception) as error:
         pickle_myDB.multiset(kv_iter=(
@@ -202,7 +202,7 @@ def test_multiset_and_multiget(msgpack_myDB, pickle_myDB, total):
         get_vals = list(msgpack_myDB.multiget(key_iter=list(range(i, i+factor))))
         gen_vals = []
         for idx,j in enumerate(range(i, i+factor)):
-            gen_val = [gri_stream.next(), gri_stream.next(), gri_stream.next()]
+            gen_val = [next(gri_stream), next(gri_stream), next(gri_stream)]
             assert get_vals[idx] == gen_val
 
     # multigets that raise Exception
