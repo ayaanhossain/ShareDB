@@ -1137,7 +1137,7 @@ class ShareDB(object):
                             key=item_key, txn=itempopper, opr='pop', packed=True)
         return key, val
 
-    # @alivemethod
+    @alivemethod
     def multipopitem(self, num_items=None):
         '''
         User function to pop over key-value pairs in ShareDB.
