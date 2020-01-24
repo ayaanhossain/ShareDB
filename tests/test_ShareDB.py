@@ -232,8 +232,8 @@ def get_myDB_resources(total):
     # Populate myDB with random items and record keys
     key_val_dict = {}
     while len(key_val_dict) < total:
-        key = gri_stream.next()
-        val = gri_stream.next()
+        key = next(gri_stream)
+        val = next(gri_stream)
         if key not in key_val_dict:
             myDB[key] = val
             key_val_dict[key] = val
@@ -241,7 +241,7 @@ def get_myDB_resources(total):
     # Generate some keys not seen before
     non_key_set = set()
     while len(non_key_set) < total:
-        non_key = gri_stream.next()
+        non_key = next(gri_stream)
         if non_key not in key_val_dict:
             non_key_set.add(non_key)
 
