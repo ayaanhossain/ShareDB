@@ -328,7 +328,7 @@ def test_random_lengths(total):
 @pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
 def test_random_remove(total):
     '''
-    Test random remove.
+    Test random remove and related Exception.
     '''
     myDB, key_val_dict, non_key_set = get_myDB_resources(total)
 
@@ -336,6 +336,12 @@ def test_random_remove(total):
     for key in key_val_dict:
         del myDB[key]
         assert key not in myDB
+    for key in non_key_set:
+        del myDB[key]
+
+    # remove that raises Exception
+    with pytest.raises(TypeError) as error:
+        myDB.remove(None)
     
     clean_myDB_resources(myDB, key_val_dict, non_key_set)
 
@@ -352,6 +358,7 @@ def test_random_multiremove(total):
         prev_len = len(myDB)
         myDB.multiremove(key_iter=(key_val_dict.popitem()[0] for _ in range(factor)))
         assert len(myDB) == prev_len - factor
+    myDB.multiremove(non_key_set)
     
     # multiremove that raises Exception
     with pytest.raises(Exception) as error:
@@ -412,9 +419,9 @@ def test_random_items(total):
     Test random items.
     '''
     myDB, key_val_dict, non_key_set = get_myDB_resources(total)
-    myDB_items = set(myDB.items())
-    dict_items = set(key_val_dict.items())
-    assert myDB_items == dict_items
+    myDB_items   = set(myDB.items())
+    mydict_items = set(key_val_dict.items())
+    assert myDB_items == mydict_items
     clean_myDB_resources(myDB, key_val_dict, non_key_set)
 
 @pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
@@ -423,9 +430,9 @@ def test_random_keys(total):
     Test random keys.
     '''
     myDB, key_val_dict, non_key_set = get_myDB_resources(total)
-    myDB_keys = set(myDB.keys())
-    dict_keys = set(key_val_dict.keys())
-    assert myDB_keys == dict_keys
+    myDB_keys   = set(myDB.keys())
+    mydict_keys = set(key_val_dict.keys())
+    assert myDB_keys == mydict_keys
     clean_myDB_resources(myDB, key_val_dict, non_key_set)
 
 @pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
@@ -446,9 +453,51 @@ def test_random_values(total):
     Test random values.
     '''
     myDB, key_val_dict, non_key_set = get_myDB_resources(total)
-    myDB_vals = set(myDB.values())
-    dict_vals = set(key_val_dict.values())
-    assert myDB_vals == dict_vals
+    myDB_vals   = set(myDB.values())
+    mydict_vals = set(key_val_dict.values())
+    assert myDB_vals == mydict_vals
+    clean_myDB_resources(myDB, key_val_dict, non_key_set)
+
+@pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
+def test_random_popitem(total):
+    '''
+    Test random popitem.
+    '''
+    myDB, key_val_dict, non_key_set = get_myDB_resources(total)
+    while key_val_dict:
+        popped_key, popped_val = myDB.popitem()
+        assert key_val_dict[popped_key] == popped_val
+        key_val_dict.pop(popped_key)
+    clean_myDB_resources(myDB, key_val_dict, non_key_set)
+
+@pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
+def test_random_multipopitem(total):
+    '''
+    Test random multipopitem.
+    '''
+    myDB, key_val_dict, non_key_set = get_myDB_resources(total)
+    while len(myDB):
+        num_items = random.randint(0, len(myDB)*2)
+        prev_len  = len(myDB)
+        popped_items = myDB.multipopitem(num_items=num_items)
+        for popped_key,popped_val in popped_items:
+            assert key_val_dict[popped_key] == popped_val
+        assert len(myDB) == max(0, prev_len - num_items)
+    
+    # multiremove that raises Exception
+    with pytest.raises(Exception) as error:
+        myDB.multiremove([None]*factor)
+    
+    clean_myDB_resources(myDB, key_val_dict, non_key_set)
+
+@pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
+def test_random_clear(total):
+    '''
+    Test random clear.
+    '''
+    myDB, key_val_dict, non_key_set = get_myDB_resources(total)
+    myDB.clear()
+    assert len(myDB) == 0    
     clean_myDB_resources(myDB, key_val_dict, non_key_set)
 
 if __name__ == '__main__':

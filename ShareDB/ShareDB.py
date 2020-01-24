@@ -47,7 +47,7 @@ class ShareDB(object):
     Python 2.7 and 3.8.
     '''
 
-    __version__ = '0.3.6'
+    __version__ = '0.3.7'
 
     __author__ = 'Ayaan Hossain'
 
@@ -457,7 +457,7 @@ class ShareDB(object):
         :: key - a valid key to be inserted/updated in ShareDB
         :: val - a valid value/object associated with given key
 
-        set test cases.
+        set test cases.d
 
         >>> myDB = ShareDB(path='./test_set.ShareDB', reset=True)
         >>> myDB.set(key=('NAME'), val='Ayaan Hossain')
@@ -1137,12 +1137,12 @@ class ShareDB(object):
                             key=item_key, txn=itempopper, opr='pop', packed=True)
         return key, val
 
-    @alivemethod
+    # @alivemethod
     def multipopitem(self, num_items=None):
         '''
         User function to pop over key-value pairs in ShareDB.
 
-        :: num_items - an integer specifying the number of items to pop
+        :: num_items - an integer specifying the maximum number of items to pop
 
         multpopitem test cases.
 
@@ -1161,6 +1161,8 @@ class ShareDB(object):
         10
         >>> 1 in myDB
         False
+        >>> len(list(myDB.multiset((i,i**2) for i in range(10)).multipopitem(num_items=15)))
+        10
         >>> myDB.drop()
         True
         '''
@@ -1169,11 +1171,10 @@ class ShareDB(object):
             raise TypeError(
                 'num_items={} of {} must be an integer/long/float'.format(
                     num_items, type(num_items)))
-        else:
-            num_items = min(num_items, self.length())
 
         # Iterate over ShareDB and load num_item keys in packed state
-        curr_key = self._iter_on_disk_kv(yield_key=True, unpack_key=False)
+        num_items = min(num_items, self.length()) # safe upper limit
+        curr_key  = self._iter_on_disk_kv(yield_key=True, unpack_key=False)
         item_keys = []
         while len(item_keys) < num_items:
             item_keys.append(next(curr_key))
