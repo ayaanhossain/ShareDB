@@ -436,7 +436,15 @@ class ShareDB(object):
         '''
         key = self._get_packed_key(key=key)
         val = self._get_packed_val(val=val)
-        txn.put(key=key, value=val, overwrite=True, append=False)
+        try:
+            txn.put(key=key, value=val, overwrite=True, append=False)
+        except lmdb.MapFullError:
+            raise MemoryError(
+                '{} is full'.format(str(self)))
+        except Exception as E:
+            raise TypeError(
+                'Given key={} of {} and value={} of {} raised: {}'.format(
+                    key, type(key), val, type(val), E))
         self.BQSIZE += 1
         self._trigger_sync()
         return None

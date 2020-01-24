@@ -5,7 +5,7 @@ import string
 import pytest
 
 
-def test_ShareDB_init_fails_and_drop_success():
+def test_ShareDB_init_fails_and_close_drop_success():
     '''
     Test Exceptions be raised on bad instantiation,
     test success of dropping ShareDB once instantiated.
@@ -28,8 +28,19 @@ def test_ShareDB_init_fails_and_drop_success():
             readers='XYZ',
             buffer_size=100,
             map_size=10**3)
+    with pytest.raises(TypeError) as error:
+        myDB = ShareDB(
+            path='./test_init.ShareDB',
+            reset=True,
+            readers='XYZ',
+            buffer_size=100,
+            map_size=0)
     myDB = ShareDB(path='./test_init.ShareDB', reset=True)
-    assert myDB.drop()
+    assert myDB.close() == True
+    assert myDB.close() == False
+    myDB = ShareDB(path='./test_init.ShareDB', reset=True)
+    assert myDB.drop()  == True
+    assert myDB.drop()  == False
 
 @pytest.fixture
 def msgpack_myDB():
@@ -213,6 +224,36 @@ def test_random_multiset_and_multiget(msgpack_myDB, pickle_myDB, total):
     with pytest.raises(Exception) as error:
         next(pickle_myDB.multiget(key_iter=(None for _ in range(total))))
 
+def get_tinyDB(map_size):
+    '''
+    Initialize a ShareDB with msgpack serialization.
+    '''
+    myDB = ShareDB(path='./tinyDB',
+        reset=True,
+        serial='msgpack',
+        readers=40,
+        buffer_size=100,
+        map_size=map_size)
+    return myDB
+
+@pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
+def test_random_memory_fail(total):
+    '''
+    Test random MemoryError when ShareDB is imporperly instantiated.
+    '''
+    # Setup DB and random
+    myDB = get_tinyDB(map_size=total//100)
+    seed = random.random()
+    gri_stream = gri(seed=seed)
+
+    # sets that raise MemoryError
+    with pytest.raises(MemoryError):
+        for _ in range(total):
+            myDB.set(key=next(gri_stream), val=next(gri_stream))
+
+    # Clear myDB
+    myDB.drop()
+
 def get_myDB_resources(total):
     '''
     Initialize a populated ShareDB instance and associated resources.
@@ -293,7 +334,7 @@ def test_random_remove(total):
 
     # Successful random remove
     for key in key_val_dict:
-        myDB.remove(key)
+        del myDB[key]
         assert key not in myDB
     
     clean_myDB_resources(myDB, key_val_dict, non_key_set)
@@ -363,6 +404,45 @@ def test_random_multipop(total):
     with pytest.raises(Exception) as error:
         next(myDB.multipop(key_iter=non_key_set))
 
+    clean_myDB_resources(myDB, key_val_dict, non_key_set)
+
+@pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
+def test_random_items(total):
+    '''
+    Test random items.
+    '''
+    myDB, key_val_dict, non_key_set = get_myDB_resources(total)
+    assert sorted(key_val_dict.items()) == sorted(myDB.items())
+    clean_myDB_resources(myDB, key_val_dict, non_key_set)
+
+@pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
+def test_random_keys(total):
+    '''
+    Test random keys.
+    '''
+    myDB, key_val_dict, non_key_set = get_myDB_resources(total)
+    assert sorted(key_val_dict.keys()) == sorted(myDB.keys())
+    clean_myDB_resources(myDB, key_val_dict, non_key_set)
+
+@pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
+def test_random_iters(total):
+    '''
+    Test random iters.
+    '''
+    myDB, key_val_dict, non_key_set = get_myDB_resources(total)
+    selected_keys = list(key_val_dict.keys())[:random.randint(0, total//10)]
+    for key in selected_keys:
+        keys = iter(myDB)
+        assert key in keys
+    clean_myDB_resources(myDB, key_val_dict, non_key_set)
+
+@pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
+def test_random_values(total):
+    '''
+    Test random values.
+    '''
+    myDB, key_val_dict, non_key_set = get_myDB_resources(total)
+    assert sorted(key_val_dict.values()) == sorted(myDB.values())
     clean_myDB_resources(myDB, key_val_dict, non_key_set)
 
 if __name__ == '__main__':
