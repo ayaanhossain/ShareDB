@@ -47,7 +47,7 @@ class ShareDB(object):
     Python 2.7 and 3.8.
     '''
 
-    __version__ = '0.2.6'
+    __version__ = '0.3.6'
 
     __author__ = 'Ayaan Hossain'
 
@@ -456,7 +456,7 @@ class ShareDB(object):
         ShareDB instantiated from ./test_set.ShareDB/
         >>> myDB.set(key=['KEY'], val=set(['SOME_VALUE']))
         Traceback (most recent call last):
-        Exception: Given value=set(['SOME_VALUE']) of <type 'set'>, raised: can not serialize 'set' object
+        TypeError: Given value=set(['SOME_VALUE']) of <type 'set'>, raised: can not serialize 'set' object
         >>> myDB.set(key=(1, 2, 3, 4), val='SOME_VALUE')
         ShareDB instantiated from ./test_set.ShareDB/
         >>> myDB.set(key='ANOTHER KEY', val=[1, 2, 3, 4])
@@ -525,10 +525,10 @@ class ShareDB(object):
         True
         >>> myDB[tuple(range(1))] = set(range(1))
         Traceback (most recent call last):
-        Exception: Given value=set([0]) of <type 'set'>, raised: can not serialize 'set' object
+        TypeError: Given value=set([0]) of <type 'set'>, raised: can not serialize 'set' object
         >>> myDB[set(range(1))] = range(1)
         Traceback (most recent call last):
-        Exception: Given key=set([0]) of <type 'set'>, raised: can not serialize 'set' object
+        TypeError: Given key=set([0]) of <type 'set'>, raised: can not serialize 'set' object
         >>> myDB.drop()
         True
         '''
@@ -541,48 +541,6 @@ class ShareDB(object):
                     'Given kv_iter={} of {}, raised: {}'.format(
                         kv_iter, type(kv_iter), E))
         return self
-
-    @alivemethod
-    def length(self):
-        '''
-        User function to return the number of items stored in ShareDB.
-
-        length test cases.
-
-        >>> myDB = ShareDB(path='./test_length', reset=True, serial='pickle')
-        >>> for i in range(500, 600): myDB[i] = set([2.0*i])
-        >>> len(myDB)
-        100
-        >>> myDB.sync().clear().length()
-        0
-        >>> myDB.drop()
-        True
-        '''
-        return int(self.DB.stat()['entries'])
-
-    def __len__(self):
-        '''
-        Pythonic dunder function to return the number of items stored in ShareDB.
-
-        __len__ test cases.
-
-        >>> myDB = ShareDB(path='./test_len.ShareDB', reset=True)
-        >>> for i in range(100): myDB[i] = i**2
-        >>> len(myDB)
-        100
-        >>> myDB.close()
-        True
-        >>> myDB = ShareDB(path='./test_len.ShareDB', reset=False)
-        >>> len(myDB)
-        100
-        >>> myDB.clear()
-        ShareDB instantiated from ./test_len.ShareDB/
-        >>> len(myDB)
-        0
-        >>> myDB.drop()
-        True
-        '''
-        return self.length()
 
     def _get_val_on_disk(self, key, txn, packed=False, default=None):
         '''
@@ -698,6 +656,9 @@ class ShareDB(object):
         True
         >>> myDB.multiget(key_iter=range(100, 110), default=False).next()
         False
+        >>> myDB.multiget(key_iter=[None]).next()
+        Traceback (most recent call last):
+        Exception: Given key_iter=[None] of <type 'list'>, raised: ShareDB cannot use <type 'NoneType'> objects as keys
         >>> myDB.drop()
         True
         '''
@@ -774,6 +735,48 @@ class ShareDB(object):
         True
         '''
         return self.has_key(key=key)
+
+    @alivemethod
+    def length(self):
+        '''
+        User function to return the number of items stored in ShareDB.
+
+        length test cases.
+
+        >>> myDB = ShareDB(path='./test_length', reset=True, serial='pickle')
+        >>> for i in range(500, 600): myDB[i] = set([2.0*i])
+        >>> len(myDB)
+        100
+        >>> myDB.sync().clear().length()
+        0
+        >>> myDB.drop()
+        True
+        '''
+        return int(self.DB.stat()['entries'])
+
+    def __len__(self):
+        '''
+        Pythonic dunder function to return the number of items stored in ShareDB.
+
+        __len__ test cases.
+
+        >>> myDB = ShareDB(path='./test_len.ShareDB', reset=True)
+        >>> for i in range(100): myDB[i] = i**2
+        >>> len(myDB)
+        100
+        >>> myDB.close()
+        True
+        >>> myDB = ShareDB(path='./test_len.ShareDB', reset=False)
+        >>> len(myDB)
+        100
+        >>> myDB.clear()
+        ShareDB instantiated from ./test_len.ShareDB/
+        >>> len(myDB)
+        0
+        >>> myDB.drop()
+        True
+        '''
+        return self.length()
 
     def _del_pop_from_disk(self, key, txn, opr, packed=False):
         '''
@@ -890,7 +893,7 @@ class ShareDB(object):
         return self
 
     @alivemethod
-    def pop(self, key, default=None):
+    def pop(self, key):
         '''
         User function to pop a key and return its value.
 
@@ -923,7 +926,7 @@ class ShareDB(object):
         return val
 
     @alivemethod
-    def multipop(self, key_iter, default=None):
+    def multipop(self, key_iter):
         '''
         User function to return an iterator of popped values for a given iterable of keys.
 
@@ -1057,6 +1060,26 @@ class ShareDB(object):
         return self._iter_on_disk_kv(yield_key=True, unpack_key=True)
 
     @alivemethod
+    def __iter__(self):
+        '''
+        Pythonic dunder function to iterate over keys in ShareDB.
+
+        __iter__ test cases.
+
+        >>> myDB = ShareDB(path='./test_iter.ShareDB', reset=True)
+        >>> myDB.multiset((i,i**2) for i in range(10)).length()
+        10
+        >>> sorted(iter(myDB))
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        >>> for key in myDB: assert myDB[key] == key**2
+        >>> 10 in iter(myDB)
+        False
+        >>> myDB.drop()
+        True
+        '''
+        return self.keys()
+
+    @alivemethod
     def values(self):
         '''
         User function to iterate over values in ShareDB.
@@ -1125,7 +1148,7 @@ class ShareDB(object):
         >>> myDB = ShareDB(path='./test_multpopitem', reset=False)
         >>> len(list(myDB.multipopitem(num_items='THIS IS NOT A NUMBER')))
         Traceback (most recent call last):
-        Exception: num_items=THIS IS NOT A NUMBER, of <type 'str'> must be an integer/long/float
+        TypeError: num_items=THIS IS NOT A NUMBER of <type 'str'> must be an integer/long/float
         >>> len(list(myDB.multipopitem(num_items=len(myDB)*1.0)))
         10
         >>> 1 in myDB
