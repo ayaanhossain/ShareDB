@@ -49,7 +49,7 @@ class ShareDB(object):
 
     __version__ = '0.3.7'
 
-    __author__ = 'Ayaan Hossain'
+    __author__  = 'Ayaan Hossain'
 
     def __init__(self, path=None, reset=False, serial='msgpack', readers=100, buffer_size=10**5, map_size=10**9):
         '''
