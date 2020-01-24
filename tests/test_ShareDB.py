@@ -412,7 +412,9 @@ def test_random_items(total):
     Test random items.
     '''
     myDB, key_val_dict, non_key_set = get_myDB_resources(total)
-    assert sorted(key_val_dict.items()) == sorted(myDB.items())
+    myDB_items = set(myDB.items())
+    dict_items = set(key_val_dict.items())
+    assert myDB_items == dict_items
     clean_myDB_resources(myDB, key_val_dict, non_key_set)
 
 @pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
@@ -421,7 +423,9 @@ def test_random_keys(total):
     Test random keys.
     '''
     myDB, key_val_dict, non_key_set = get_myDB_resources(total)
-    assert sorted(key_val_dict.keys()) == sorted(myDB.keys())
+    myDB_keys = set(myDB.keys())
+    dict_keys = set(key_val_dict.keys())
+    assert myDB_keys == dict_keys
     clean_myDB_resources(myDB, key_val_dict, non_key_set)
 
 @pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
@@ -442,7 +446,9 @@ def test_random_values(total):
     Test random values.
     '''
     myDB, key_val_dict, non_key_set = get_myDB_resources(total)
-    assert sorted(key_val_dict.values()) == sorted(myDB.values())
+    myDB_vals = set(myDB.values())
+    dict_vals = set(key_val_dict.values())
+    assert myDB_vals == dict_vals
     clean_myDB_resources(myDB, key_val_dict, non_key_set)
 
 if __name__ == '__main__':
