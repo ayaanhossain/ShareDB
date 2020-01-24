@@ -86,7 +86,7 @@ Please checkout the [API.md](./docs/API.md) file for API details.
 ### Installation
 One-shot **installation/upgrade** of `ShareDB` from **PyPI**
 ```bash
-$ pip install ShareDB --upgrade
+$ pip install --upgrade ShareDB
 ```
 Alternatively, **clone** `ShareDB` from **GitHub**
 ```bash
