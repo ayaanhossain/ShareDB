@@ -66,7 +66,7 @@ def test_close_drop():
     assert myDB.close() == True
     assert myDB.close() == False
 
-    # close that raises RuntimeError
+    # Once closed transaction raises RuntimeError
     with pytest.raises(RuntimeError) as error:
         myDB[1] = 2
 
@@ -75,7 +75,7 @@ def test_close_drop():
     assert myDB.drop()  == True
     assert myDB.drop()  == False
 
-    # drop that raises RuntimeError
+    # Once dropped transaction raises RuntimeError
     with pytest.raises(RuntimeError) as error:
         myDB[1] = 2
 
