@@ -47,7 +47,7 @@ class ShareDB(object):
     Python 2.7 and 3.8.
     '''
 
-    __version__ = '0.3.7'
+    __version__ = '0.3.10'
 
     __author__  = 'Ayaan Hossain'
 
@@ -138,13 +138,13 @@ class ShareDB(object):
         '''
         try:
             # Format path correctly
-            path = self._trim_suffix(given_str=path, suffix='/')
-            path = self._trim_suffix(given_str=path, suffix='.ShareDB')
+            path = ShareDB._trim_suffix(given_str=path, suffix='/')
+            path = ShareDB._trim_suffix(given_str=path, suffix='.ShareDB')
             path += '.ShareDB/'
 
             # Reset ShareDB instance if necessary
             if reset:
-                self._clear_path(path)
+                ShareDB._clear_path(path)
 
             # Create path if absent
             if not os.path.isdir(path):
@@ -152,17 +152,17 @@ class ShareDB(object):
 
             # Create configuration if absent
             if not os.path.exists(path + 'ShareDB.config'):
-                config = self._store_config(
+                config = ShareDB._store_config(
                     path, serial, buffer_size, map_size, readers)
             # Otherwise load configuration
             else:
-                config = self._load_config(path)
+                config = ShareDB._load_config(path)
 
             # Setup ShareDB instance
             self.PATH  = path  # Path to ShareDB
             self.ALIVE = True  # Instance is alive
             # Serialization to use for (un)packing keys and values
-            self.PACK, self.UNPACK = self._get_serialization_functions(
+            self.PACK, self.UNPACK = ShareDB._get_serialization_functions(
                 serial=config.get('ShareDB Config', 'SERIAL'))
             # Number of processes reading in parallel
             self.PARALLEL = config.getint('ShareDB Config', 'PARALLEL')
@@ -217,8 +217,10 @@ class ShareDB(object):
         '''
         if os.path.isdir(path):
             shutil.rmtree(path, ignore_errors=True)
-        elif os.path.exists(path):
-            os.remove(path)
+        else:
+            filepath = path.rstrip('/')
+            if os.path.isfile(filepath):
+                os.remove(filepath)
 
     @staticmethod
     def _store_config(path, serial, buffer_size, map_size, readers):

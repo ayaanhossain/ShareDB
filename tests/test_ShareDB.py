@@ -5,17 +5,19 @@ import string
 import pytest
 
 
-def test_ShareDB_init_fails_and_close_drop_success():
+def test_ShareDB_init_param_fails():
     '''
-    Test Exceptions be raised on bad instantiation,
-    test success of dropping ShareDB once instantiated.
+    Test Exceptions be raised on bad instantiation.
     '''
     with pytest.raises(TypeError) as error:
         myDB = ShareDB()
+        myDB.drop()
     with pytest.raises(TypeError) as error:
         myDB = ShareDB(path=True)
+        myDB.drop()
     with pytest.raises(TypeError) as error:
         myDB = ShareDB(path=123)
+        myDB.drop()
     with pytest.raises(TypeError) as error:
         myDB = ShareDB(
             path='./test_init.ShareDB',
@@ -36,11 +38,46 @@ def test_ShareDB_init_fails_and_close_drop_success():
             buffer_size=100,
             map_size=0)
     myDB = ShareDB(path='./test_init.ShareDB', reset=True)
+    myDB.drop()
+
+def test_ShareDB_path():
+    '''
+    Test Exceptions and success when path is occupied by file.
+    '''
+    # Setup ShareDB init fail via file occupancy
+    path = './test_init.ShareDB'
+    with open(path, 'w') as outfile:
+        pass
+
+    # Raises TypeError because path points to a file
+    with pytest.raises(TypeError) as error:
+        myDB = ShareDB(path=path)
+
+    # Automatically remove file when reset is True
+    myDB = ShareDB(path=path, reset=True)
+    myDB.drop()
+
+def test_close_drop():
+    '''
+    Test close and drop.
+    '''
+    # Successful close
+    myDB = ShareDB(path='./test_close_drop')
     assert myDB.close() == True
     assert myDB.close() == False
-    myDB = ShareDB(path='./test_init.ShareDB', reset=True)
+
+    # close that raises RuntimeError
+    with pytest.raises(RuntimeError) as error:
+        myDB[1] = 2
+
+    # Successful drop
+    myDB = ShareDB(path='./test_close_drop', reset=True)
     assert myDB.drop()  == True
     assert myDB.drop()  == False
+
+    # drop that raises RuntimeError
+    with pytest.raises(RuntimeError) as error:
+        myDB[1] = 2
 
 @pytest.fixture
 def msgpack_myDB():
