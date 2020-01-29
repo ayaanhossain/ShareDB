@@ -27,6 +27,12 @@ def test_ShareDB_init_param_fails():
         myDB = ShareDB(
             path='./test_init.ShareDB',
             reset=True,
+            serial='pickle',
+            compress='AbsoluteTruth')
+    with pytest.raises(TypeError) as error:
+        myDB = ShareDB(
+            path='./test_init.ShareDB',
+            reset=True,
             readers='XYZ',
             buffer_size=100,
             map_size=10**3)
@@ -87,6 +93,7 @@ def msgpack_myDB():
     msgpack_myDB = ShareDB(path='./myDB.msgpack',
         reset=True,
         serial='msgpack',
+        compress=True,
         readers=40,
         buffer_size=100,
         map_size=10**7)
@@ -104,6 +111,7 @@ def pickle_myDB():
     pickle_myDB = ShareDB(path='./myDB.pickle',
         reset=True,
         serial='pickle',
+        compress=True,
         readers=40,
         buffer_size=100,
         map_size=10**7)
@@ -120,7 +128,10 @@ def test_ShareDB_init_success(msgpack_myDB, pickle_myDB):
     assert msgpack_myDB.PATH     == './myDB.msgpack.ShareDB/'
     assert pickle_myDB.PATH      == './myDB.pickle.ShareDB/'
     assert msgpack_myDB.ALIVE    == pickle_myDB.ALIVE    == True
-    assert msgpack_myDB.PARALLEL == pickle_myDB.PARALLEL == 40
+    assert msgpack_myDB.SERIAL   == 'msgpack'
+    assert pickle_myDB.SERIAL    == 'pickle'
+    assert msgpack_myDB.COMPRESS == pickle_myDB.COMPRESS == True
+    assert msgpack_myDB.READERS  == pickle_myDB.READERS  == 40
     assert msgpack_myDB.BCSIZE   == pickle_myDB.BCSIZE   == 100
     assert msgpack_myDB.BQSIZE   == pickle_myDB.BQSIZE   == 0
     assert msgpack_myDB.MSLIMIT  == pickle_myDB.MSLIMIT  == 10000000
@@ -303,6 +314,7 @@ def get_myDB_resources(total):
     myDB = ShareDB(path='./myDB',
         reset=True,
         serial='msgpack',
+        compress=random.choice([True, False]),
         readers=40,
         buffer_size=100,
         map_size=10**7)

@@ -3,6 +3,8 @@ import os
 import numbers
 import msgpack
 import pickle
+import zlib
+import functools
 import configparser
 import lmdb
 
@@ -47,17 +49,25 @@ class ShareDB(object):
     Python 2.7 and 3.8.
     '''
 
-    __version__ = '0.3.10'
+    __version__ = '0.4.4'
 
     __author__  = 'Ayaan Hossain'
 
-    def __init__(self, path=None, reset=False, serial='msgpack', readers=100, buffer_size=10**5, map_size=10**9):
+    def __init__(self,
+        path        = None,
+        reset       = False,
+        serial      = 'msgpack',
+        compress    = False,
+        readers     = 100,
+        buffer_size = 10**5,
+        map_size    = 10**9):
         '''
         ShareDB constructor.
 
         :: path        - a/path/to/a/directory/to/persist/the/data (default=None)
         :: reset       - boolean, if True - delete and recreate path following parameters (default=False)
         :: serial      - string, must be either 'msgpack' or 'pickle' (default='msgpack')
+        :: compress    - boolean, if True - will compress the values using zlib (default=False)
         :: readers     - max no. of processes that'll read data in parallel (default=40 processes)
         :: buffer_size - max no. of commits after which a sync is triggered (default=100,000)
         :: map_size    - max amount of bytes to allocate for storage (default=1GB)
@@ -69,6 +79,7 @@ class ShareDB(object):
         TypeError: Given path=None of <type 'NoneType'>,
                          reset=False of <type 'bool'>,
                          serial=msgpack of <type 'str'>,
+                         compress=False of <type 'bool'>,
                          readers=100 of <type 'int'>,
                          buffer_size=100000 of <type 'int'>,
                          map_size=1000000000 of <type 'int'>,
@@ -78,6 +89,7 @@ class ShareDB(object):
         TypeError: Given path=True of <type 'bool'>,
                          reset=False of <type 'bool'>,
                          serial=msgpack of <type 'str'>,
+                         compress=False of <type 'bool'>,
                          readers=100 of <type 'int'>,
                          buffer_size=100000 of <type 'int'>,
                          map_size=1000000000 of <type 'int'>,
@@ -87,6 +99,7 @@ class ShareDB(object):
         TypeError: Given path=123 of <type 'int'>,
                          reset=False of <type 'bool'>,
                          serial=msgpack of <type 'str'>,
+                         compress=False of <type 'bool'>,
                          readers=100 of <type 'int'>,
                          buffer_size=100000 of <type 'int'>,
                          map_size=1000000000 of <type 'int'>,
@@ -96,6 +109,7 @@ class ShareDB(object):
         TypeError: Given path=/22.f.ShareDB/ of <type 'str'>,
                          reset=False of <type 'bool'>,
                          serial=msgpack of <type 'str'>,
+                         compress=False of <type 'bool'>,
                          readers=100 of <type 'int'>,
                          buffer_size=100000 of <type 'int'>,
                          map_size=1000000000 of <type 'int'>,
@@ -105,6 +119,7 @@ class ShareDB(object):
         TypeError: Given path=./test_init.ShareDB/ of <type 'str'>,
                          reset=True of <type 'bool'>,
                          serial=something_fancy of <type 'str'>,
+                         compress=False of <type 'bool'>,
                          readers=100 of <type 'int'>,
                          buffer_size=100000 of <type 'int'>,
                          map_size=1000000000 of <type 'int'>,
@@ -114,6 +129,7 @@ class ShareDB(object):
         TypeError: Given path=./test_init.ShareDB/ of <type 'str'>,
                          reset=True of <type 'bool'>,
                          serial=msgpack of <type 'str'>,
+                         compress=False of <type 'bool'>,
                          readers=XYZ of <type 'str'>,
                          buffer_size=100 of <type 'int'>,
                          map_size=1000 of <type 'int'>,
@@ -123,7 +139,7 @@ class ShareDB(object):
         './test_init.ShareDB/'
         >>> myDB.ALIVE
         True
-        >>> myDB.PARALLEL
+        >>> myDB.READERS
         40
         >>> myDB.BCSIZE
         100
@@ -153,7 +169,7 @@ class ShareDB(object):
             # Create configuration if absent
             if not os.path.exists(path + 'ShareDB.config'):
                 config = ShareDB._store_config(
-                    path, serial, buffer_size, map_size, readers)
+                    path, serial, compress, readers, buffer_size, map_size)
             # Otherwise load configuration
             else:
                 config = ShareDB._load_config(path)
@@ -161,15 +177,19 @@ class ShareDB(object):
             # Setup ShareDB instance
             self.PATH  = path  # Path to ShareDB
             self.ALIVE = True  # Instance is alive
-            # Serialization to use for (un)packing keys and values
-            self.PACK, self.UNPACK = ShareDB._get_serialization_functions(
-                serial=config.get('ShareDB Config', 'SERIAL'))
+            # (Un)serialization scheme argument
+            self.SERIAL = config.get('ShareDB Config', 'SERIAL')
+            # Whether to compress packed values for storage?
+            self.COMPRESS = config.getboolean('ShareDB Config', 'COMPRESS')
+            # Serialization function to use for (un)packing keys and values
+            self.KEYP, self.KEYU, self.VALP, self.VALU = ShareDB._get_serial_funcs(
+                serial=self.SERIAL, compress=self.COMPRESS)
             # Number of processes reading in parallel
-            self.PARALLEL = config.getint('ShareDB Config', 'PARALLEL')
+            self.READERS = config.getint('ShareDB Config', 'READERS')
             # Trigger sync after this many items inserted
             self.BCSIZE = config.getint('ShareDB Config', 'BCSIZE')
             # Approx. no. of items to sync in ShareDB
-            self.BQSIZE = config.getint('ShareDB Config', 'BQSIZE')
+            self.BQSIZE = 0
             # Memory map size, maybe larger than RAM
             self.MSLIMIT = config.getint('ShareDB Config', 'MSLIMIT')
             self.DB = lmdb.open(
@@ -180,7 +200,7 @@ class ShareDB(object):
                 readahead=False,
                 writemap=True,
                 map_async=True,
-                max_readers=self.PARALLEL,
+                max_readers=self.READERS,
                 max_dbs=0,
                 lock=True)
 
@@ -189,6 +209,7 @@ class ShareDB(object):
                 '''Given path={} of {},
                  reset={} of {},
                  serial={} of {},
+                 compress={} of {},
                  readers={} of {},
                  buffer_size={} of {},
                  map_size={} of {},
@@ -196,6 +217,7 @@ class ShareDB(object):
                     path,        type(path),
                     reset,       type(reset),
                     serial,      type(serial),
+                    compress,    type(compress),
                     readers,     type(readers),
                     buffer_size, type(buffer_size),
                     map_size,    type(map_size),
@@ -223,18 +245,18 @@ class ShareDB(object):
                 os.remove(filepath)
 
     @staticmethod
-    def _store_config(path, serial, buffer_size, map_size, readers):
+    def _store_config(path, serial, compress, readers, buffer_size, map_size):
         '''
         Internal helper funtion to create ShareDB configuration file.
         '''
         config = configparser.RawConfigParser()
         config.add_section('ShareDB Config')
-        config.set('ShareDB Config', 'SERIAL',   serial)
-        config.set('ShareDB Config', 'PARALLEL', readers)
-        config.set('ShareDB Config', 'BCSIZE',   buffer_size)
-        config.set('ShareDB Config', 'BQSIZE',   0)
-        config.set('ShareDB Config', 'MSLIMIT',  map_size)
-        with open(path + 'ShareDB.config', 'w') as config_file:
+        config.set('ShareDB Config', 'SERIAL',   str(serial).lower())
+        config.set('ShareDB Config', 'COMPRESS', str(compress))
+        config.set('ShareDB Config', 'READERS',  str(readers))
+        config.set('ShareDB Config', 'BCSIZE',   str(buffer_size))
+        config.set('ShareDB Config', 'MSLIMIT',  str(map_size))
+        with open(path + 'ShareDB.config', 'wb') as config_file:
             config.write(config_file)
         return config
 
@@ -243,25 +265,63 @@ class ShareDB(object):
         '''
         Internal helper funtion to load ShareDB configuration file.
         '''
-        config = configparser.RawConfigParser()
-        config.read(path+'ShareDB.config')
+        config = configparser.ConfigParser()
+        config_file = path+'ShareDB.config'
+        with open(config_file, 'rb') as config_file:
+            config.read_file(config_file)
         return config
 
     @staticmethod
-    def _get_serialization_functions(serial):
+    def _get_base_packer(serial):
+        if serial == 'msgpack':
+            return lambda x: msgpack.packb(x, use_bin_type=True)
+        return lambda x: pickle.dumps(x, protocol=pickle.HIGHEST_PROTOCOL)
+
+    @staticmethod
+    def _get_base_unpacker(serial):
+        if serial == 'msgpack':
+            return lambda x: msgpack.unpackb(x, raw=False, use_list=True)
+        return lambda x: pickle.loads(x)
+
+    @ staticmethod
+    def _get_compressed_packer(serial):
+        base_packer = ShareDB._get_base_packer(serial)
+        return lambda x: zlib.compress(base_packer(x))
+
+    @ staticmethod
+    def _get_decompressed_unpacker(serial):
+        base_unpacker = ShareDB._get_base_unpacker(serial)
+        return lambda x: base_unpacker(zlib.decompress(x))
+
+    @staticmethod
+    def _get_serial_funcs(serial, compress):
         '''
         Internal helper function to decide (un)packing functions.
         '''
+        # Validate serial argument
         if serial not in ['msgpack', 'pickle']:
             raise ValueError(
-                'serial must be \'msgpack\' or \'pickle\' not {}'.format(serial))
-        if serial == 'msgpack':
-            PACK   = lambda x: msgpack.packb(x, use_bin_type=True)
-            UNPACK = lambda x: msgpack.unpackb(x, raw=False, use_list=True)
-        if serial == 'pickle':
-            PACK   = lambda x: pickle.dumps(x, protocol=pickle.HIGHEST_PROTOCOL)
-            UNPACK = lambda x: pickle.loads(x)
-        return PACK, UNPACK
+                'serial must be \'msgpack\' or \'pickle\' not {}'.format(
+                    serial))
+        
+        # Setup base (un)packing functions
+        base_packer   = ShareDB._get_base_packer(serial)
+        base_unpacker = ShareDB._get_base_unpacker(serial)
+        
+        # Setup key (un)packing functions
+        key_packer    = base_packer
+        key_unpacker  = base_unpacker
+
+        # Setup value (un)packing functions
+        if compress:
+            value_packer   = ShareDB._get_compressed_packer(serial)
+            value_unpacker = ShareDB._get_decompressed_unpacker(serial)
+        else:
+            value_packer   = base_packer
+            value_unpacker = base_unpacker
+
+        # Return all (un)packer methods
+        return key_packer, key_unpacker, value_packer, value_unpacker
 
     def alivemethod(method):
         '''
@@ -328,7 +388,7 @@ class ShareDB(object):
             raise TypeError(
                 'ShareDB cannot use {} objects as keys'.format(type(None)))
         try:
-            key = self.PACK(key)
+            key = self.KEYP(key)
         except Exception as E:
             raise TypeError(
                 'Given key={} of {}, raised: {}'.format(
@@ -354,7 +414,7 @@ class ShareDB(object):
             raise TypeError(
                 'ShareDB cannot use {} objects as keys'.format(type(None)))
         try:
-            key = self.UNPACK(key)
+            key = self.KEYU(key)
         except Exception as E:
             raise TypeError(
                 'Given key={} of {}, raised: {}'.format(
@@ -386,7 +446,7 @@ class ShareDB(object):
             raise TypeError(
                 'ShareDB cannot use {} objects as values'.format(type(None)))
         try:
-            val = self.PACK(val)
+            val = self.VALP(val)
         except Exception as E:
             raise TypeError(
                 'Given value={} of {}, raised: {}'.format(
@@ -412,7 +472,7 @@ class ShareDB(object):
             raise TypeError(
                 'ShareDB cannot use {} objects as values'.format(type(None)))
         try:
-            val = self.UNPACK(val)
+            val = self.VALU(val)
         except Exception as E:
             raise TypeError(
                 'Given value={} of {}, raised: {}'.format(
