@@ -49,7 +49,7 @@ class ShareDB(object):
     Python 2.7 and 3.8.
     '''
 
-    __version__ = '0.4.4'
+    __version__ = '0.4.5'
 
     __author__  = 'Ayaan Hossain'
 
@@ -256,7 +256,8 @@ class ShareDB(object):
         config.set('ShareDB Config', 'READERS',  str(readers))
         config.set('ShareDB Config', 'BCSIZE',   str(buffer_size))
         config.set('ShareDB Config', 'MSLIMIT',  str(map_size))
-        with open(path + 'ShareDB.config', 'wb') as config_file:
+        config_file_path = path+'ShareDB.config'
+        with open(config_file_path, 'w') as config_file:
             config.write(config_file)
         return config
 
@@ -266,8 +267,8 @@ class ShareDB(object):
         Internal helper funtion to load ShareDB configuration file.
         '''
         config = configparser.ConfigParser()
-        config_file = path+'ShareDB.config'
-        with open(config_file, 'rb') as config_file:
+        config_file_path = path+'ShareDB.config'
+        with open(config_file_path) as config_file:
             config.read_file(config_file)
         return config
 
