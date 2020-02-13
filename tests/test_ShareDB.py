@@ -7,7 +7,7 @@ import pytest
 
 def test_ShareDB_init_param_fails():
     '''
-    Test Exceptions be raised on bad instantiation.
+    Test Exceptions to be raised on bad instantiation.
     '''
     with pytest.raises(TypeError) as error:
         myDB = ShareDB()
