@@ -142,7 +142,7 @@ def merge_results(mergeDB_path, outDB_paths):
     mergeDB.close()
 
 def main():
-    # Setup
+    # Setup variables
     inDB_path = './task_DBs/in.ShareDB'
     num_task  = 100
     num_proc  = cpu_count() - 1

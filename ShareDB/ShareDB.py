@@ -4,7 +4,6 @@ import numbers
 import msgpack
 import pickle
 import zlib
-import functools
 import configparser
 import lmdb
 

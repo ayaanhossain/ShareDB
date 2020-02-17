@@ -46,13 +46,13 @@
  2. the data needs to be **read across multiple processes** with minimal overhead, and 
  3. the **keys** and **values** can be (de)serialized via **msgpack** or **pickle**.
 
-Sending a `ShareDB` object to children processes is fine, or you may open the same `ShareDB` instance in parallel for reading. **Parallel writes made in children processes are not safe**; they are not guaranteed to be written, and may corrupt instance. `ShareDB` is primarily developed and tested using **Linux** and is compatible with both **Python 2.7 and 3.8**.
+A `ShareDB` instance may be opened simultaneously in children, for reading in parallel, while a single parent writes to the instance. **Parallel writes made across processes are not safe**; they violate ACID principles, are not guaranteed to be written, and may corrupt instance. `ShareDB` is primarily developed and tested using **Linux** and is compatible with both **Python 2.7 and 3.8**.
 
 ### `ShareDB` in Action
 ```python
 >>> from ShareDB import ShareDB           # Easy import
 >>> print(ShareDB.__version__)            # Check version
-0.1.6
+0.4.5
 >>> myDB = ShareDB(path='./test.ShareDB') # Store ShareDB locally
 >>> myDB['Name'] = ['Ayaan Hossain']      # Insert information
 >>> myDB.get(key='Name')                  # Retrieve values
@@ -65,7 +65,7 @@ True
 >>> myDB['non-existent key']              # KeyError on invalid get as expected
 Traceback (most recent call last):
 ...
-KeyError: "key=non-existent key of <type 'str'> is absent"
+KeyError: "key=non-existent key of <class 'str'> is absent"
 >>> myDB.pop(7)                           # Pop a key just like a dictionary
 17
 >>> list(myDB.multipopitem(num_items=5))  # Or, pop as many items as you need
@@ -79,9 +79,7 @@ True
 ```
 `ShareDB` methods either return data/result up on appropriate query, or a `self` object is returned to facilitate method chaining. Terminal methods `.close()` and `.drop()` return a boolean indicating success.
 
-Please checkout example scripts inside the `/examples/` directory for toy applications using `ShareDB`. Running the example scripts might require installation of additional libraries, as described inside the scripts.
-
-Please checkout the [API.md](./docs/API.md) file for API details.
+Please checkout the `/examples/` directory for a complete example of using `ShareDB`.  Please checkout the [API.md](./docs/API.md) file for API details.
 
 ### Installation
 One-shot **installation/upgrade** of `ShareDB` from **PyPI**
@@ -125,16 +123,16 @@ $ pip uninstall ShareDB
 See [LICENSE](./LICENSE) file for more details.
 
 ### Contributing
-We recommend **discussing** any issues/bugs you're facing, or any changes/enhancements you have in mind by first **opening an issue**, following the [Contributor Covenant](https://www.contributor-covenant.org/version/2/0/code_of_conduct). See [COC.md](./docs/COC.md) file for details. Please provide detailed **information**, and code **snippets** to facilitate debugging.
+We recommend **discussing** any issues/bugs you're facing, or any changes/enhancements you have in mind by **opening an issue**, following the [Contributor Covenant](https://www.contributor-covenant.org/version/2/0/code_of_conduct). See [COC.md](./docs/COC.md) file for details. Please provide detailed **information**, and code **snippets** to facilitate debugging.
 
-To contribute to `ShareDB`, please **clone** or **fork** this repository, **commit** your code on a **separate branch**, and **submit** a **pull request**. All **code modifications** must be accompanied with detailed **comments** and **new unit tests** as reasonable. Please ensure that modified builds **pass existing unit tests**.  For versioning, we use [SemVer](https://semver.org/).
+To contribute to `ShareDB`, please **clone** this repository, **commit** your code on a **separate new branch**, and **submit** a **pull request**. Please annotate and describe all **new and modified code** with detailed **comments** and **new unit tests** as reasonable. Please ensure that modified builds **pass existing unit tests**.  For versioning, we use [SemVer](https://semver.org/).
 
 ### Acknowledgements
 `ShareDB` is maintained by:
 
  - Ayaan Hossain | [github.com/ayaanhossain](https://github.com/ayaanhossain) | [@bioalgorithmist](https://twitter.com/bioalgorithmist)
 
-`ShareDB` was primarily written to meet data analytics needs in [Prof. Howard Salis](https://twitter.com/hsalis)' Lab at [Penn State University](https://salislab.net/).
+`ShareDB` was originally written to meet data analytics needs in [Prof. Howard Salis](https://twitter.com/hsalis)' Lab at [Penn State University](https://salislab.net/).
 
 Prof. Salis has funded the initial development of `ShareDB`.
 
