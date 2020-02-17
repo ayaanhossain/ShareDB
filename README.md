@@ -46,7 +46,7 @@
  2. the data needs to be **read across multiple processes** with minimal overhead, and 
  3. the **keys** and **values** can be (de)serialized via **msgpack** or **pickle**.
 
-A `ShareDB` instance may be opened simultaneously in children, for reading in parallel, while a single parent writes to the instance. **Parallel writes made across processes are not safe**; they violate ACID principles, are not guaranteed to be written, and may corrupt instance. `ShareDB` is primarily developed and tested using **Linux** and is compatible with both **Python 2.7 and 3.8**.
+A `ShareDB` instance may be opened simultaneously in children, for reading in parallel, while a single parent writes to the instance. **Parallel writes made across processes are not safe**; they are not guaranteed to be written, and may corrupt instance. `ShareDB` is primarily developed and tested using **Linux** and is compatible with both **Python 2.7 and 3.8**.
 
 ### `ShareDB` in Action
 ```python
