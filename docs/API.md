@@ -15,11 +15,17 @@
 ShareDB constructor.
 
 `path` - `string`, a/path/to/a/directory/to/persist/the/data (default=`None`)
+
 `reset` - `boolean`, if `True` - delete and recreate path following parameters (default=`False`)
+
 `serial` - `string`, must be either `'msgpack'` or `'pickle'` (default=`'msgpack'`)
+
 `compress` - `boolean`, if `True` - will compress the values using zlib (default=`False`)
+
 `readers` - `integer`, max no. of processes that'll read data in parallel (default=`40` processes)
+
 `buffer_size` - `integer`, max no. of commits after which a sync is triggered (default=`100,000`)
+
 `map_size` - `integer`, max amount of bytes to allocate for storage (default=`1GB`)
 
 _Returns_ - `ShareDB` object.
