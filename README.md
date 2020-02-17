@@ -46,7 +46,7 @@
  2. the data needs to be **read across multiple processes** with minimal overhead, and 
  3. the **keys** and **values** can be (de)serialized via **msgpack** or **pickle**.
 
-A `ShareDB` instance may be opened simultaneously in children, for reading in parallel, while a single parent writes to the instance. **Parallel writes made across processes are not safe**; they violate ACID principles, are not guaranteed to be written, and may corrupt instance. `ShareDB` is primarily developed and tested using **Linux** and is compatible with both **Python 2.7 and 3.8**.
+A `ShareDB` instance may be opened simultaneously in children, for reading in parallel, while a single parent writes to the instance. **Parallel writes made across processes are not safe**; they are not guaranteed to be written, and may corrupt instance. `ShareDB` is primarily developed and tested using **Linux** and is compatible with both **Python 2.7 and 3.8**.
 
 ### `ShareDB` in Action
 ```python
@@ -123,9 +123,9 @@ $ pip uninstall ShareDB
 See [LICENSE](./LICENSE) file for more details.
 
 ### Contributing
-We recommend **discussing** any issues/bugs you're facing, or any changes/enhancements you have in mind by **opening an issue**, following the [Contributor Covenant](https://www.contributor-covenant.org/version/2/0/code_of_conduct). See [COC.md](./docs/COC.md) file for details. Please provide detailed **information**, and code **snippets** to facilitate debugging.
+Please **discuss** any issues/bugs you're facing, or any changes/features you have in mind by **opening an issue**, following the [Contributor Covenant](https://www.contributor-covenant.org/version/2/0/code_of_conduct). See [COC.md](./docs/COC.md) file for details. Please provide detailed **information**, and code **snippets** to facilitate debugging.
 
-To contribute to `ShareDB`, please **clone** this repository, **commit** your code on a **separate new branch**, and **submit** a **pull request**. Please annotate and describe all **new and modified code** with detailed **comments** and **new unit tests** as reasonable. Please ensure that modified builds **pass existing unit tests**.  For versioning, we use [SemVer](https://semver.org/).
+To contribute to `ShareDB`, please **clone** this repository, **commit** your code on a **separate new branch**, and **submit** a **pull request**. Please annotate and describe all **new and modified code** with detailed **comments** and **new unit tests**. Please ensure that modified builds **pass existing unit tests**.  For versioning, we use [SemVer](https://semver.org/).
 
 ### Acknowledgements
 `ShareDB` is maintained by:
