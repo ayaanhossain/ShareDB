@@ -79,7 +79,7 @@ True
 ```
 `ShareDB` methods either return data/result up on appropriate query, or a `self` object is returned to facilitate method chaining. Terminal methods `.close()` and `.drop()` return a boolean indicating success.
 
-Please checkout the `/examples/` directory for a complete example of using `ShareDB`.  Please checkout the [API.md](./docs/API.md) file for API details.
+Please see the `/examples/` directory for a full example of `ShareDB` usage.  Please checkout the [API.md](./docs/API.md) file for API details.
 
 ### Installation
 One-shot **installation/upgrade** of `ShareDB` from **PyPI**
@@ -125,7 +125,7 @@ See [LICENSE](./LICENSE) file for more details.
 ### Contributing
 Please **discuss** any issues/bugs you're facing, or any changes/features you have in mind by **opening an issue**, following the [Contributor Covenant](https://www.contributor-covenant.org/version/2/0/code_of_conduct). See [COC.md](./docs/COC.md) file for details. Please provide detailed **information**, and code **snippets** to facilitate debugging.
 
-To contribute to `ShareDB`, please **clone** this repository, **commit** your code on a **separate new branch**, and **submit** a **pull request**. Please annotate and describe all **new and modified code** with detailed **comments** and **new unit tests**. Please ensure that modified builds **pass existing unit tests**.  For versioning, we use [SemVer](https://semver.org/).
+To contribute to `ShareDB`, please **clone** this repository, **commit** your code on a **separate new branch**, and **submit** a **pull request**. Please annotate and describe all **new** and **modified code** with detailed **comments** and **new unit tests**. Please ensure that modified builds **pass existing unit tests**.  For versioning, we use [SemVer](https://semver.org/).
 
 ### Acknowledgements
 `ShareDB` is maintained by:
