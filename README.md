@@ -79,7 +79,7 @@ True
 ```
 `ShareDB` methods either return data/result up on appropriate query, or a `self` object is returned to facilitate method chaining. Terminal methods `.close()` and `.drop()` return a boolean indicating success.
 
-Please see the `/examples/` directory for a full example of `ShareDB` usage.  Please checkout the [API.md](./docs/API.md) file for API details.
+Please see the `/examples/` directory for a full example of `ShareDB` usage.  Please see the [API.md](./docs/API.md) file for API details.
 
 ### Installation
 One-shot **installation/upgrade** of `ShareDB` from **PyPI**
