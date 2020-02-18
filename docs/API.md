@@ -19,11 +19,11 @@ ShareDB constructor.
 | `reset` | `boolean` | if `True` - delete and recreate path following subsequent parameters | `False` |
 | `serial` | `string` | must be either `'msgpack'` or `'pickle'` | `False`
 | `compress` | `string` | if `True` - will compress the values using `zlib` | `False`
-| `readers` | `integer` | max no. of processes that'll read data in parallel | `100`
+| `readers` | `integer` | max no. of processes that may read data in parallel | `100`
 | `buffer_size` | `integer` | max no. of commits after which a sync is triggered | `100,000`
 | `map_size` | `integer` | max amount of bytes to allocate for storage | `1GB`
 
-_Returns_ - `ShareDB` object.
+_Returns_ - `self` to `ShareDB` object.
 ```python
 >>> myDB = ShareDB(
 	path='./test.ShareDB',
@@ -36,3 +36,34 @@ True
 ```
 
 **\_\_repr__(self)**
+
+Pythonic dunder function to return a string representation of ShareDB instance.
+
+_Alias_ - **\_\_str__**
+
+_Returns_ - A `string` representation of ShareDB object.
+
+```python
+>>> myDB = ShareDB(path='./test.ShareDB', reset=True)
+>>> myDB
+ShareDB instantiated from ./test.ShareDB/
+```
+
+**set(self, key, val)**
+
+User function to insert/overwrite a key-value pair into ShareDB instance.
+
+| argument | type | description | default |
+|--|--|--|--|
+| `key` | `object` | a valid key to be inserted/updated in ShareDB |  `None`|
+| `val` | `object` | a valid value/object associated with given key | `None` |
+
+_Alias_ - **\_\_setitem__**
+
+_Returns_ - `self` to `ShareDB` object.
+
+```python
+>>> myDB.set(key='key', value=['value'])
+>>> myDB['some-other-key'] = 'some-other-value'
+>>> myDB.set(0, 1).set(1, 2).set(2, 3)
+```
