@@ -47,7 +47,6 @@ _Alias_ - **\_\_str__**
 _Returns_ - A `string` representation of `ShareDB` object.
 
 ```python
->>> myDB = ShareDB(path='./test.ShareDB', reset=True)
 >>> myDB
 ShareDB instantiated from ./test.ShareDB/
 ```
@@ -99,7 +98,7 @@ _Returns_ - `self` to `ShareDB` object.
 
 **get(self, key)**
 
-User function to query value for a given key else return default.
+User function to query value for a given key in ShareDB instance.
 
 | argument | type | description | default |
 |--|--|--|--|
@@ -119,7 +118,7 @@ _Returns_ - Unpacked `value` corresponding to `key`, otherwise `default`.
 
 **\_\_getitem__(self, key, val)**
 
-Pythonic dunder function to query value for a given key.
+Pythonic dunder function to query value for a given key in ShareDB instance.
 
 | argument | type | description | default |
 |--|--|--|--|
@@ -137,7 +136,7 @@ KeyError: "key=unknown of <class 'str'> is absent"
 
 **multiget(self, key_iter)**
 
-User function to return a generator of values for a given iterable of keys.
+User function to return an iterator of values for a given iterable of keys in ShareDB instance.
 
 | argument | type | description | default |
 |--|--|--|--|
