@@ -63,8 +63,10 @@ User function to insert/overwrite a key-value pair into ShareDB instance.
 _Returns_ - `self` to `ShareDB` object.
 
 ```python
->>> myDB.set(key='key', value=['value'])
+>>> myDB.set(key='key', val=['value'])
+ShareDB instantiated from ./test.ShareDB/
 >>> myDB.set(0, 1).set(1, 2).set(2, 3)
+ShareDB instantiated from ./test.ShareDB/
 ```
 
 **\_\_setitem__(self, key, val)**
@@ -94,6 +96,7 @@ _Returns_ - `self` to `ShareDB` object.
 
 ```python
 >>> myDB.multiset(kv_iter=zip(range(3, 10), range(13, 20)))
+ShareDB instantiated from ./test.ShareDB/
 ```
 
 **get(self, key, default=None)**
@@ -127,7 +130,8 @@ Pythonic dunder function to query value for a given key in ShareDB instance.
 _Returns_ - Unpacked `value` corresponding to `key`, otherwise `KeyError`.
 
 ```python
->>> myDB['some-other-key'] = 'some-other-value'
+>>> myDB['some-other-key']
+'some-other-value'
 >>> myDB['unknown']
 Traceback (most recent call last):
 ...
@@ -179,7 +183,7 @@ User function to return the number of items stored in ShareDB instance.
 
 _Alias_ - **\_\_len__**
 
-_Returns_ - `integer` size of ShareDB instance.
+_Returns_ - `integer` size of `ShareDB` instance.
 ```python
 >>> myDB.length()
 12
@@ -267,10 +271,45 @@ User function to return a generator of popped values for a given iterable of key
 _Returns_ - A `generator` of unpacked `values`, otherwise `KeyError`.
 
 ```python
->>> list(myDB.multipop(range(4, 10)))
-[14, 15, 16, 17, 18, 19]
+>>> list(myDB.multipop(range(4, 8)))
+[14, 15, 16, 17]
 >>> list(myDB.multipop(range(0, 3)))
 Traceback (most recent call last):
 ...
-Exception: Given key_iter=[0, 1, 2] of <type 'list'>, raised: "key=0 of <type 'int'> is absent"
+Exception: Given key_iter=range(0, 3) of <class 'range'>, raised: "key=0 of <class 'int'> is absent"
+```
+
+**items(self)**
+
+User function to iterate over key-value pairs in ShareDB instance.
+
+_Returns_ - A `generator` of `(key, value)`-pairs in ShareDB.
+
+```python
+>>> list(myDB.items())
+[('key', ['value']), ('some-other-key', 'some-other-value')]
+```
+
+**keys(self)**
+
+User function to iterate over keys in ShareDB instance.
+
+_Alias_ - **\_\_iter__**
+
+_Returns_ - A `generator` of `keys` in ShareDB.
+
+```python
+>>> list(myDB.keys())
+['key', 'some-other-key']
+```
+
+**values(self)**
+
+User function to iterate over values in ShareDB instance.
+
+_Returns_ - A `generator` of `values` in ShareDB.
+
+```python
+>>> list(myDB.keys())
+[['value'], 'some-other-value']
 ```
