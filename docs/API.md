@@ -9,11 +9,15 @@
   <a href="../README.md">README</a>
 </p>
 
-### API Documentation
+### `ShareDB` API Documentation
+
+ - [\_\_init__](#\_\_init__(self,-path,-reset=False,-serial='msgpack',-compress=False,-readers=100,-buffer_size=10\*\*5,-map_size=10\*\*9))
+ - [\_\_repr__ / \_\_str__](#\_\_repr__(self))
+ - [set](#set(self))
 
 **\_\_init__(self, path, reset=False, serial='msgpack', compress=False, readers=100, buffer_size=10\*\*5, map_size=10\*\*9)**
 
-ShareDB constructor.
+`ShareDB` constructor.
 
 | argument | type | description | default |
 |--|--|--|--|
@@ -28,6 +32,7 @@ ShareDB constructor.
 _Returns_ - `self` to `ShareDB` object.
 
 ```python
+>>> from ShareDB import ShareDB
 >>> myDB = ShareDB(
 	path='./test.ShareDB',
 	reset=True,
@@ -40,7 +45,7 @@ True
 
 **\_\_repr__(self)**
 
-Pythonic dunder function to return a string representation of ShareDB instance.
+Pythonic dunder function to return a `string` representation of `ShareDB` instance.
 
 _Alias_ - **\_\_str__**
 
@@ -53,7 +58,7 @@ ShareDB instantiated from ./test.ShareDB/
 
 **set(self, key, val)**
 
-User function to insert/overwrite a key-value pair into ShareDB instance.
+User function to insert/overwrite a `(key, value)` pair into `ShareDB` instance.
 
 | argument | type | description | default |
 |--|--|--|--|
@@ -71,7 +76,7 @@ ShareDB instantiated from ./test.ShareDB/
 
 **\_\_setitem__(self, key, val)**
 
-Pythonic dunder function to insert/overwrite a key-value pair into ShareDB instance.
+Pythonic dunder function to insert/overwrite a `(key, value)` pair into `ShareDB` instance.
 
 | argument | type | description | default |
 |--|--|--|--|
@@ -86,7 +91,7 @@ _Returns_ - `None`
 
 **multiset(self, kv_iter)**
 
-User function to insert/update multiple key-value pairs into ShareDB instance.
+User function to insert/update multiple `(key, value)` pairs into `ShareDB` instance.
 
 | argument | type | description | default |
 |--|--|--|--|
@@ -101,7 +106,7 @@ ShareDB instantiated from ./test.ShareDB/
 
 **get(self, key, default=None)**
 
-User function to query value for a given key in ShareDB instance.
+User function to query value for a given `key` in `ShareDB` instance.
 
 | argument | type | description | default |
 |--|--|--|--|
@@ -121,7 +126,7 @@ _Returns_ - Unpacked `value` corresponding to `key`, otherwise `default`.
 
 **\_\_getitem__(self, key, val)**
 
-Pythonic dunder function to query value for a given key in ShareDB instance.
+Pythonic dunder function to query value for a given `key` in `ShareDB` instance.
 
 | argument | type | description | default |
 |--|--|--|--|
@@ -140,7 +145,7 @@ KeyError: "key=unknown of <class 'str'> is absent"
 
 **multiget(self, key_iter, default=None)**
 
-User function to return an generator of values for a given iterable of keys in ShareDB instance.
+User function to iterate over `values` for a given iterable of `keys` in `ShareDB` instance.
 
 | argument | type | description | default |
 |--|--|--|--|
@@ -156,7 +161,7 @@ _Returns_ - A `generator` of unpacked `values`, otherwise `default` for absent `
 
 **has_key(self, key)**
 
-User function to check existence of given key in ShareDB.
+User function to check existence of given `key` in `ShareDB` instance.
 
 | argument | type | description | default |
 |--|--|--|--|
@@ -179,7 +184,7 @@ False
 
 **length(self)**
 
-User function to return the number of items stored in ShareDB instance.
+User function to return the number of items stored in `ShareDB` instance.
 
 _Alias_ - **\_\_len__**
 
@@ -193,7 +198,7 @@ _Returns_ - `integer` size of `ShareDB` object.
 
 **remove(self, key)**
 
-User function to remove a key from ShareDB instance.
+User function to remove a `key` from `ShareDB` instance.
 
 | argument | type | description | default |
 |--|--|--|--|
@@ -208,7 +213,7 @@ _Returns_ - `self` to `ShareDB` object.
 
 **\_\_delitem__(self, key)**
 
-Pythonic dunder function to remove a key from ShareDB instance.
+Pythonic dunder function to remove a `key` from `ShareDB` instance.
 
 | argument | type | description | default |
 |--|--|--|--|
@@ -226,11 +231,11 @@ False
 
 **multiremove(self, key_iter)**
 
-User function to remove all keys specified in an iterator, from ShareDB instance.
+User function to remove all `keys` specified in an iterator, from `ShareDB` instance.
 
 | argument | type | description | default |
 |--|--|--|--|
-| `key` | `iterator` | an iterable of keys to be deleted from ShareDB | -- |
+| `key_iter` | `iterator` | an iterable of keys to be deleted from ShareDB | -- |
 
 _Returns_ - `self` to `ShareDB` object.
 
@@ -243,7 +248,7 @@ False
 
 **pop(self, key)**
 
-User function to pop a key from ShareDB instance and return its value.
+User function to pop a `key` from `ShareDB` instance and return its `value`.
 
 | argument | type | description | default |
 |--|--|--|--|
@@ -262,7 +267,7 @@ KeyError: "key=3 of <class 'int'> is absent"
 
 **multipop(self, key_iter)**
 
-User function to return a generator of popped values for a given iterable of keys in ShareDB instance.
+User function to iterate over `values` for a given iterable of `keys` to be popped from `ShareDB` instance.
 
 | argument | type | description | default |
 |--|--|--|--|
@@ -281,7 +286,7 @@ Exception: Given key_iter=range(0, 3) of <class 'range'>, raised: "key=0 of <cla
 
 **items(self)**
 
-User function to iterate over key-value pairs in ShareDB instance.
+User function to iterate over `(key, value)` pairs in `ShareDB` instance.
 
 _Returns_ - A `generator` of stored `(key, value)`-pairs.
 
@@ -292,7 +297,7 @@ _Returns_ - A `generator` of stored `(key, value)`-pairs.
 
 **keys(self)**
 
-User function to iterate over keys in ShareDB instance.
+User function to iterate over `keys` in `ShareDB` instance.
 
 _Alias_ - **\_\_iter__**
 
@@ -305,7 +310,7 @@ _Returns_ - A `generator` of stored `keys`.
 
 **values(self)**
 
-User function to iterate over values in ShareDB instance.
+User function to iterate over `values` in `ShareDB` instance.
 
 _Returns_ - A `generator` of stored `values`.
 
@@ -316,7 +321,7 @@ _Returns_ - A `generator` of stored `values`.
 
 **popitem(self)**
 
-User function to pop a single key-value pair in ShareDB instance.
+User function to pop a single `(key, value)` pair in `ShareDB` instance.
 
 _Returns_ - A popped `(key, value)`-pair.
 
@@ -331,7 +336,7 @@ _Returns_ - A popped `(key, value)`-pair.
 
 **multipopitem(self, num_items=1)**
 
-User function to pop multiple key-value pairs in ShareDB instance.
+User function to iterate over multiple `(key, value)` pairs to be popped from `ShareDB` instance.
 
 | argument | type | description | default |
 |--|--|--|--|
@@ -350,7 +355,7 @@ _Returns_ - A generator of up to `num_items` popped `(key, value)`-pairs.
 
 **sync(self)**
 
-User function to flush ShareDB inserts/changes/commits on to disk.
+User function to flush `ShareDB` instance inserts/changes/commits on to disk.
 
 _Returns_ - `self` to `ShareDB` object.
 
@@ -361,7 +366,7 @@ ShareDB instantiated from ./test.ShareDB/
 
 **clear(self)**
 
-User function to remove all data stored in a ShareDB instance.
+User function to remove all data stored in a `ShareDB` instance.
 
 _Returns_ - `self` to `ShareDB` object.
 
@@ -371,14 +376,14 @@ ShareDB instantiated from ./test.ShareDB/
 >>> 3 in myDB
 False
 >>> len(myDB)
-False
+0
 ```
 
 **close(self)**
 
-User function to save and close ShareDB instance if unclosed.
+User function to save and close `ShareDB` instance.
 
-_Returns_ - `True` if closed, otherwise `False`
+_Returns_ - `True` if closed, otherwise `False`.
 
 ```python
 >>> myDB.ALIVE
@@ -397,7 +402,7 @@ RuntimeError: Access to ShareDB instantiated from ./test.ShareDB/ has been close
 
 User function to delete a ShareDB instance.
 
-_Returns_ - `True` if dropped, otherwise `False`
+_Returns_ - `True` if dropped, otherwise `False`.
 
 ```python
 >>> myDB = ShareDB(path=myDB.PATH)
