@@ -49,7 +49,9 @@ Pythonic dunder function to return a `string` **representation** of `ShareDB` in
 **_Returns_**: A `string` representation of `ShareDB` object.
 
 ```python
->>> myDB
+>>> repr(myDB)
+ShareDB instantiated from ./test.ShareDB/
+>>> str(myDB)
 ShareDB instantiated from ./test.ShareDB/
 ```
 ---
@@ -80,7 +82,7 @@ Pythonic dunder function to **insert/overwrite** a `(key, value)` pair into `Sha
 | `key` | `object` | a valid key to be inserted/updated in ShareDB | -- |
 | `val` | `object` | a valid value/object associated with given key | -- |
 
-**_Returns_**: `None`
+**_Returns_**: `None`.
 
 ```python
 >>> myDB['some-other-key'] = 'some-other-value'
@@ -341,7 +343,7 @@ User function to iterate over **multiple** `(key, value)` pairs **popped** from 
 |--|--|--|--|
 | `num_items` | `integer` | max no. of items to pop from ShareDB | `1` |
 
-**_Returns_**: A generator of up to `num_items` popped `(key, value)`-pairs.
+**_Returns_**: A generator of up to `num_items` popped `(key, value)` pairs.
 
 ```python
 >>> myDB.multiset(kv_iter=zip(range(5), range(5, 10))).length()
