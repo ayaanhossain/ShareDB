@@ -11,7 +11,7 @@
 
 ### API Documentation
 
-**\_\_init__(self, path=None, reset=False, serial='msgpack', compress=False, readers=100, buffer_size=10\*\*5, map_size=10\*\*9)**
+**\_\_init__(self, path, reset=False, serial='msgpack', compress=False, readers=100, buffer_size=10\*\*5, map_size=10\*\*9)**
 
 ShareDB constructor.
 
@@ -183,7 +183,7 @@ User function to return the number of items stored in ShareDB instance.
 
 _Alias_ - **\_\_len__**
 
-_Returns_ - `integer` size of `ShareDB` instance.
+_Returns_ - `integer` size of `ShareDB` object.
 ```python
 >>> myDB.length()
 12
@@ -202,8 +202,8 @@ User function to remove a key from ShareDB instance.
 _Returns_ - `self` to `ShareDB` object.
 
 ```python
->>> myDB.remove(8).length()
-11
+>>> myDB.remove(8).remove(9).length()
+10
 ```
 
 **\_\_delitem__(self, key)**
@@ -217,9 +217,9 @@ Pythonic dunder function to remove a key from ShareDB instance.
 _Returns_ - `None`.
 
 ```python
->>> del myDB[9]
+>>> del myDB[7]
 >>> len(myDB)
-10
+9
 >>> 9 in myDB
 False
 ```
@@ -236,7 +236,7 @@ _Returns_ - `self` to `ShareDB` object.
 
 ```python
 >>> myDB.multiremove(range(0, 3)).length()
-7
+6
 >>> 0 in myDB
 False
 ```
@@ -271,8 +271,8 @@ User function to return a generator of popped values for a given iterable of key
 _Returns_ - A `generator` of unpacked `values`, otherwise `KeyError`.
 
 ```python
->>> list(myDB.multipop(range(4, 8)))
-[14, 15, 16, 17]
+>>> list(myDB.multipop(range(4, 7)))
+[14, 15, 16]
 >>> list(myDB.multipop(range(0, 3)))
 Traceback (most recent call last):
 ...
@@ -283,7 +283,7 @@ Exception: Given key_iter=range(0, 3) of <class 'range'>, raised: "key=0 of <cla
 
 User function to iterate over key-value pairs in ShareDB instance.
 
-_Returns_ - A `generator` of `(key, value)`-pairs in ShareDB.
+_Returns_ - A `generator` of stored `(key, value)`-pairs.
 
 ```python
 >>> list(myDB.items())
@@ -296,7 +296,7 @@ User function to iterate over keys in ShareDB instance.
 
 _Alias_ - **\_\_iter__**
 
-_Returns_ - A `generator` of `keys` in ShareDB.
+_Returns_ - A `generator` of stored `keys`.
 
 ```python
 >>> list(myDB.keys())
@@ -307,9 +307,108 @@ _Returns_ - A `generator` of `keys` in ShareDB.
 
 User function to iterate over values in ShareDB instance.
 
-_Returns_ - A `generator` of `values` in ShareDB.
+_Returns_ - A `generator` of stored `values`.
 
 ```python
->>> list(myDB.keys())
+>>> list(myDB.values())
 [['value'], 'some-other-value']
 ```
+
+**popitem(self)**
+
+User function to pop a single key-value pair in ShareDB instance.
+
+_Returns_ - A popped `(key, value)`-pair.
+
+```python
+>>> myDB.popitem()
+('key', ['value'])
+>>> myDB.popitem()
+('some-other-key', 'some-other-value')
+>>> len(myDB)
+0
+```
+
+**multipopitem(self, num_items=1)**
+
+User function to pop multiple key-value pairs in ShareDB instance.
+
+| argument | type | description | default |
+|--|--|--|--|
+| `num_items` | `integer` | max no. of items to pop from ShareDB | `1` |
+
+_Returns_ - A generator of up to `num_items` popped `(key, value)`-pairs.
+
+```python
+>>> myDB.multiset(kv_iter=zip(range(5), range(5, 10))).length()
+5
+>>> list(myDB.multipopitem(num_items=10))
+[(0, 5), (1, 6), (2, 7), (3, 8), (4, 9)]
+>>> len(myDB)
+0
+```
+
+**sync(self)**
+
+User function to flush ShareDB inserts/changes/commits on to disk.
+
+_Returns_ - `self` to `ShareDB` object.
+
+```python
+>>> myDB.multiset(kv_iter=zip(range(5), range(5, 10))).sync()
+ShareDB instantiated from ./test.ShareDB/
+```
+
+**clear(self)**
+
+User function to remove all data stored in a ShareDB instance.
+
+_Returns_ - `self` to `ShareDB` object.
+
+```python
+>>> myDB.clear()
+ShareDB instantiated from ./test.ShareDB/
+>>> 3 in myDB
+False
+>>> len(myDB)
+False
+```
+
+**close(self)**
+
+User function to save and close ShareDB instance if unclosed.
+
+_Returns_ - `True` if closed, otherwise `False`
+
+```python
+>>> myDB.ALIVE
+True
+>>> myDB.close()
+True
+>>> myDB.close()
+False
+>>> myDB.ALIVE
+False
+>>> myDB.set(key='key', val=['value'])
+RuntimeError: Access to ShareDB instantiated from ./test.ShareDB/ has been closed or dropped
+```
+
+**drop(self)**
+
+User function to delete a ShareDB instance.
+
+_Returns_ - `True` if dropped, otherwise `False`
+
+```python
+>>> myDB = ShareDB(path=myDB.PATH)
+>>> myDB.ALIVE
+True
+>>> myDB.drop()
+True
+>>> myDB.ALIVE
+False
+>>> myDB.set(key='key', val=['value'])
+RuntimeError: Access to ShareDB instantiated from ./test.ShareDB/ has been closed or dropped
+```
+
+
