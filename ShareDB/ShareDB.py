@@ -48,7 +48,7 @@ class ShareDB(object):
     and 3.8.
     '''
 
-    __version__ = '1.0.0'
+    __version__ = '1.0.1'
 
     __author__  = 'Ayaan Hossain'
 
@@ -64,7 +64,6 @@ class ShareDB(object):
         ShareDB constructor.
 
         path        - string, a/path/to/a/directory/to/persist/the/data
-                      (default=None)
         reset       - boolean, if True - delete and recreate path following
                       subsequent parameters
                       (default=False)
@@ -80,11 +79,11 @@ class ShareDB(object):
         map_size    - integer, max amount of bytes to allocate for storage
                       (default=1GB)
     
-        Returns - self to ShareDB object.
+        Returns: self to ShareDB object.
 
         __init__ test cases.
 
-        >>> myDB = ShareDB()
+        >>> myDB = ShareDB(path=None)
         Traceback (most recent call last):
         TypeError: Given path=None of <type 'NoneType'>,
                          reset=False of <type 'bool'>,
@@ -371,11 +370,13 @@ class ShareDB(object):
         '''
         Pythonic dunder function to return a string representation of ShareDB instance.
 
-        Returns - A string representation of ShareDB object.
+        Returns: A string representation of ShareDB object.
 
-        >>> myDB = ShareDB(path='./test.ShareDB', reset=True)
+        >>> myDB = ShareDB(path='./test_repr.ShareDB', reset=True)
         >>> myDB
-        ShareDB instantiated from ./test.ShareDB/
+        ShareDB instantiated from ./test_repr.ShareDB/
+        >>> myDB.drop()
+        True
         '''
         return 'ShareDB instantiated from {}'.format(self.PATH)
 
@@ -383,7 +384,7 @@ class ShareDB(object):
         '''
         Pythonic dunder function to return a string representation of ShareDB instance.
 
-        Returns - A string representation of ShareDB object.
+        Returns: A string representation of ShareDB object.
 
         __str__ test cases.
 
@@ -399,9 +400,9 @@ class ShareDB(object):
         '''
         Internal helper function to try and pack given key.
 
-        key - object, a valid key to be inserted/updated in ShareDB
+        key - object, a valid key to be inserted/updated
 
-        Returns - A packed key.
+        Returns: A packed key.
 
         _get_packed_key test cases.
 
@@ -433,9 +434,9 @@ class ShareDB(object):
         '''
         Internal helper function to try and unpack given key.
 
-        key - object, a valid packed key to be inserted/updated in ShareDB
+        key - object, a valid packed key to be inserted/updated
 
-        Returns - An unpacked key.
+        Returns: An unpacked key.
 
         _get_unpacked_key test cases.
 
@@ -461,9 +462,9 @@ class ShareDB(object):
         '''
         Internal helper function to try and pack given value.
 
-        val - object, a valid value/object associated with given key
+        val - object, a valid value associated with a key
 
-        Returns - A packed value.
+        Returns: A packed value.
 
         _get_packed_val test cases.
 
@@ -495,9 +496,9 @@ class ShareDB(object):
         '''
         Internal helper function to try and unpack given value.
 
-        val - object, a valid packed value/object associated with given key
+        val - object, a valid packed value associated with a key
 
-        Returns - An unpacked value.
+        Returns: An unpacked value.
 
         _get_unpacked_val test cases.
 
@@ -532,11 +533,11 @@ class ShareDB(object):
         '''
         Internal helper function to insert key-value pair via txn and trigger sync.
 
-        key - object, a valid unpacked key to be inserted/updated in ShareDB
-        val - object, a valid unpacked value/object associated with given key
+        key - object, a valid unpacked key to be inserted/updated
+        val - object, a valid unpacked value associated with given key
         txn - function, a transaction interface for insertion
 
-        Returns - None.
+        Returns: None.
         '''
         key = self._get_packed_key(key=key)
         val = self._get_packed_val(val=val)
@@ -556,12 +557,13 @@ class ShareDB(object):
     @alivemethod
     def set(self, key, val):
         '''
-        User function to insert/overwrite a key-value pair into ShareDB instance.
+        User function to insert/overwrite a single (key, value) pair in to ShareDB
+        instance.
 
-        key - object, a valid key to be inserted/updated in ShareDB
-        val - object, a valid value/object associated with given key
+        key - object, a valid key to be inserted/updated
+        val - object, a valid value associated with given key
 
-        Returns - self to ShareDB object.
+        Returns: self to ShareDB object.
 
         set test cases.
 
@@ -584,12 +586,13 @@ class ShareDB(object):
 
     def __setitem__(self, key, val):
         '''
-        Pythonic dunder function to insert/overwrite a key-value pair into ShareDB instance.
+        Pythonic dunder function to insert/overwrite a single (key, value) pair in to
+        ShareDB instance.
 
-        key - object, a valid key to be inserted/updated in ShareDB
-        val - object, a valid value/object associated with given key
+        key - object, a valid key to be inserted/updated
+        val - object, a valid value associated with given key
 
-        Returns - None.
+        Returns: None.
 
         __setitem__ test cases.
 
@@ -611,12 +614,12 @@ class ShareDB(object):
     @alivemethod
     def multiset(self, kv_iter):
         '''
-        User function to insert/update multiple key-value pairs into ShareDB instance.
+        User function to insert/update multiple (key, value) pairs in to
+        ShareDB instance via a single transaction.
 
-        kv_iter - iterator, a valid key-value iterator to populate ShareDB via
-                  a single transaction
+        kv_iter - iterable, an iterable of valid (key, value) pairs
 
-        Returns - self to ShareDB object.
+        Returns: self to ShareDB object.
 
         multiset test cases.
 
@@ -665,14 +668,14 @@ class ShareDB(object):
         '''
         Internal helper function to return the packed value associated with given key.
 
-        key     - object,   a valid key to query ShareDB for associated value
+        key     - object, a valid key to query for associated value
         txn     - function, a transaction interface for query
-        packed  - boolean,  if True - will attempt packing key
+        packed  - boolean, if True - will attempt packing key
                   (default=False)
-        default - object,   a default value to return when key is absent
+        default - object, a default value to return when key is absent
                   (default=None)
 
-        Returns - Packed value corresponding to key, otherwise default.
+        Returns: Packed value corresponding to key, otherwise default.
         '''
         if not packed:
             key = self._get_packed_key(key=key)
@@ -682,14 +685,14 @@ class ShareDB(object):
         '''
         Internal helper function to return the unpacked value associated with given key.
 
-        key     - object, a valid key to query ShareDB for associated value
+        key     - object, a valid key to query for associated value
         txn     - function, a transaction interface for query
         packed  - boolean, if True - will attempt packing key
                   (default=False)
         default - object, a default value to return when key is absent
                   (default=None)
 
-        Returns - Unpacked value corresponding to key, otherwise default.
+        Returns: Unpacked value corresponding to key, otherwise default.
         '''
         val = self._get_val_on_disk(
             key=key, txn=txn, packed=packed, default=default)
@@ -700,13 +703,13 @@ class ShareDB(object):
     @alivemethod
     def get(self, key, default=None):
         '''
-        User function to query value for a given key in ShareDB instance.
+        User function to query value of a single key in ShareDB instance.
 
-        key     - object, a valid key to query ShareDB for associated value
+        key     - object, a valid key to query for associated value
         default - object, a default value to return when key is absent
                   (default=None)
 
-        Returns - Unpacked value corresponding to key, otherwise default.
+        Returns: Unpacked value corresponding to key, otherwise default.
 
         get test cases.
 
@@ -735,11 +738,11 @@ class ShareDB(object):
 
     def __getitem__(self, key):
         '''
-        Pythonic dunder function to query value for a given key in ShareDB instance.
+        Pythonic dunder function to query value of a single key in ShareDB instance.
 
-        key - object, a valid key to query ShareDB for associated value
+        key - object, a valid key to query for associated value
 
-        Returns - Unpacked value corresponding to key, otherwise KeyError.
+        Returns: Unpacked value corresponding to key, otherwise KeyError.
 
         __getitem__ test cases.
 
@@ -770,14 +773,14 @@ class ShareDB(object):
     @alivemethod
     def multiget(self, key_iter, default=None):
         '''
-        User function to return an generator of values for a given iterable of keys
-        in ShareDB instance.
+        User function to iterate over values of multiple keys in ShareDB instance
+        via a single transaction.
 
-        key_iter - iterator, a valid iterable of keys to query ShareDB for values
-        default  - object, a default value to return when key is absent
+        key_iter - iterable, an iterable of valid keys to query for values
+        default  - object, a default value to return when a key is absent
                    (default=None)
 
-        Returns - A generator of unpacked values, otherwise default for absent keys.
+        Returns: A generator of unpacked values, otherwise default for absent keys.
 
         multiget test cases.
 
@@ -811,11 +814,12 @@ class ShareDB(object):
     @alivemethod
     def has_key(self, key):
         '''
-        User function to check existence of given key in ShareDB instance.
+        User function to check existence of a single key in ShareDB
+        instance.
 
-        key - object, a candidate key potentially in ShareDB
+        key - object, a candidate key to check for presence
 
-        Return - True if present, otherwise False.
+        Returns: True if present, otherwise False.
 
         has_key test cases.
 
@@ -842,12 +846,12 @@ class ShareDB(object):
 
     def __contains__(self, key):
         '''
-        Pythonic dunder function to check existence of given key in ShareDB
-        instance.
+        Pythonic dunder function to check existence of a single key in
+        ShareDB instance.
 
-        key - object, a candidate key potentially in ShareDB
+        key - object, a candidate key to check for presence
 
-        Return - True if present, otherwise False.
+        Returns: True if present, otherwise False.
 
         ___contain___ test cases.
 
@@ -878,11 +882,53 @@ class ShareDB(object):
         return self.has_key(key=key)
 
     @alivemethod
+    def has_multikey(self, key_iter):
+        '''
+        User function to check existence of multiple keys in ShareDB
+        instance via a single transaction.
+
+        key_iter - iterable, an iterable of candidate keys to check
+                   for presence
+
+        Returns: A generator of booleans, True for present keys,
+                 otherwise False
+
+        has_multikey test cases.
+
+        >>> myDB = ShareDB(path='./test_has_multikey', reset=True)
+        >>> myDB.multiset((i, [i**0.5, i**2.0]) for i in range(100, 200))
+        ShareDB instantiated from ./test_has_multikey.ShareDB/
+        >>> len(myDB)
+        100
+        >>> list(myDB.has_multikey(range(100, 105)))
+        [True, True, True, True, True]
+        >>> list(myDB.clear().has_multikey(range(100, 105)))
+        [False, False, False, False, False]
+        >>> next(myDB.multiset(((i,[i**0.5, i**2.0]) for i in range(100))).has_multikey([0, 1, 2]))
+        True
+        >>> myDB.drop()
+        True
+        '''
+        with self.DB.begin(write=False) as kvgetter:
+            try:
+                for key in key_iter:
+                    val = self._get_val_on_disk(
+                        key=key, txn=kvgetter, packed=False, default=None)
+                    if val is None:
+                        yield False
+                    else:
+                        yield True
+            except Exception as E:
+                raise Exception(
+                    'Given key_iter={} of {}, raised: {}'.format(
+                        key_iter, type(key_iter), E))
+
+    @alivemethod
     def length(self):
         '''
         User function to return the number of items stored in ShareDB instance.
 
-        Returns - integer size of ShareDB object.
+        Returns: integer size of ShareDB object.
 
         length test cases.
 
@@ -902,7 +948,7 @@ class ShareDB(object):
         Pythonic dunder function to return the number of items stored in ShareDB
         instance.
 
-        Returns - integer size of ShareDB object.
+        Returns: integer size of ShareDB object.
 
         __len__ test cases.
 
@@ -926,12 +972,16 @@ class ShareDB(object):
 
     def _del_pop_from_disk(self, key, txn, opr, packed=False):
         '''
-        Internal helper function to delete/pop key-value pair via txn and trigger sync.
+        Internal helper function to delete/pop (key, value) pair via txn
+        and trigger sync.
 
-        :: key    - a candidate key potentially in ShareDB
-        :: txn    - a transaction interface for delete/pop
-        :: opr    - string, must be 'del' or 'pop' specifying the operation
-        :: packed - boolean, if True - will attempt packing key (default=False)
+        key    - object, a candidate key to remove
+        txn    - function, a transaction interface for delete/pop
+        opr    - string, must be 'del' or 'pop' specifying the operation
+        packed - boolean, if True - will attempt packing key
+                 (default=False)
+
+        Returns: Unpacked value corresponding to key.
         '''
         if not packed:
             key = self._get_packed_key(key=key)
@@ -956,11 +1006,11 @@ class ShareDB(object):
     @alivemethod
     def remove(self, key):
         '''
-        User function to remove a key from ShareDB instance.
+        User function to remove a single key from ShareDB instance.
 
-        key - object, a candidate key potentially in ShareDB
+        key - object, a candidate key to remove
 
-        Return - self to ShareDB object.
+        Returns: self to ShareDB object.
 
         remove test cases.
 
@@ -985,11 +1035,12 @@ class ShareDB(object):
 
     def __delitem__(self, key):
         '''
-        Pythonic dunder function to remove a key from ShareDB instance.
+        Pythonic dunder function to remove a single key from ShareDB
+        instance.
 
-        key - object, a candidate key potentially in ShareDB
+        key - object, a candidate key to remove
 
-        Return - None.
+        Returns: None.
 
         __delitem__ test cases.
 
@@ -1011,12 +1062,12 @@ class ShareDB(object):
     @alivemethod
     def multiremove(self, key_iter):
         '''
-        User function to remove all keys specified in an iterator, from ShareDB
-        instance.
+        User function to remove mutiple keys from ShareDB instance via a
+        single transaction.
 
-        key_iter - iteratror, an iterable of keys to be deleted from ShareDB
+        key_iter - iterable, an iterable of candidate keys to remove
 
-        Return - self to ShareDB object.
+        Returns: self to ShareDB object.
 
         multiremove test cases.
 
@@ -1048,11 +1099,12 @@ class ShareDB(object):
     @alivemethod
     def pop(self, key):
         '''
-        User function to pop a key from ShareDB instance and return its value.
+        User function to pop a single key from ShareDB instance and
+        return its value.
 
-        key - object, a valid key to be popped from ShareDB
+        key - object, a valid key to be popped
 
-        Returns - Unpacked value corresponding to key, otherwise KeyError.
+        Returns: Unpacked value corresponding to key, otherwise KeyError.
 
         pop test cases.
 
@@ -1083,12 +1135,12 @@ class ShareDB(object):
     @alivemethod
     def multipop(self, key_iter):
         '''
-        User function to return a generator of popped values for a given iterable of keys
-        in ShareDB instance.
+        User function to pop multiple keys from ShareDB instance via a single
+        transaction and iterate over their values.
 
-        key_iter - iterator, a valid iterable of keys to be popped from ShareDB
+        key_iter - iterable, an iterable of valid keys to be popped
 
-        Returns - A generator of unpacked values, otherwise KeyError.
+        Returns: A generator of unpacked values, otherwise KeyError.
 
         multipop test cases.
 
@@ -1132,7 +1184,7 @@ class ShareDB(object):
         yield_val  - boolean, if True will stream values
         unpack_val - boolean, if True will unpack values
 
-        Returns - A generator of (un)packed keys and values as specified.
+        Returns: A generator of (un)packed keys and values as specified.
 
         _iter_on_disk_kv test cases.
 
@@ -1176,9 +1228,9 @@ class ShareDB(object):
     @alivemethod
     def items(self):
         '''
-        User function to iterate over key-value pairs in ShareDB instance.
+        User function to iterate over all (key, value) pairs in ShareDB instance.
 
-        Returns - A generator of stored (key, value)-pairs.
+        Returns: A generator of unpacked (key, value) pairs.
 
         items test cases.
 
@@ -1203,9 +1255,9 @@ class ShareDB(object):
     @alivemethod
     def keys(self):
         '''
-        User function to iterate over keys in ShareDB instance.
+        User function to iterate over all keys in ShareDB instance.
 
-        Returns - A generator of stored keys.
+        Returns: A generator of unpacked keys.
 
         keys test cases.
 
@@ -1229,9 +1281,9 @@ class ShareDB(object):
     @alivemethod
     def __iter__(self):
         '''
-        Pythonic dunder function to iterate over keys in ShareDB instance.
+        Pythonic dunder function to iterate over all keys in ShareDB instance.
 
-        Returns - A generator of stored keys.
+        Returns: A generator of unpacked keys.
 
         __iter__ test cases.
 
@@ -1251,9 +1303,9 @@ class ShareDB(object):
     @alivemethod
     def values(self):
         '''
-        User function to iterate over values in ShareDB instance.
+        User function to iterate over all values in ShareDB instance.
 
-        Returns - A generator of stored values.
+        Returns: A generator of unpacked values.
 
         values test cases.
 
@@ -1277,9 +1329,10 @@ class ShareDB(object):
     @alivemethod
     def popitem(self):
         '''
-        User function to pop a single key-value pair in ShareDB instance.
+        User function to pop a single (key, value) pair in ShareDB
+        instance.
 
-        Returns - A popped (key, value)-pair.
+        Returns: A popped unpacked (key, value) pair.
 
         popitem test cases.
 
@@ -1305,12 +1358,14 @@ class ShareDB(object):
     @alivemethod
     def multipopitem(self, num_items=1):
         '''
-        User function to pop multiple key-value pairs in ShareDB instance.
+        User function to iterate over multiple popped (key, value) pairs
+        from ShareDB instance via a single transaction.
 
-        num_items - integer, max no. of items to pop from ShareDB
+        num_items - integer, max no. of items to pop
                     (default=1)
 
-        Returns - A generator of up to num_items popped (key, value)-pairs.
+        Returns: A generator of up to num_items popped unpacked
+                  (key, value) pairs.
 
         multpopitem test cases.
 
@@ -1357,9 +1412,10 @@ class ShareDB(object):
     @alivemethod
     def sync(self):
         '''
-        User function to flush ShareDB inserts/changes/commits on to disk.
+        User function to flush all inserts/changes/commits to ShareDB
+        instance on disk.
 
-        Returns - self to ShareDB object.
+        Returns: self to ShareDB object.
         '''
         self.DB.sync()
         return self
@@ -1370,7 +1426,7 @@ class ShareDB(object):
 
         drop_DB - boolean, if True - will delete the database
 
-        Returns - self to ShareDB object.
+        Returns: self to ShareDB object.
         '''
         with self.DB.begin(write=True) as dropper:
             to_drop = self.DB.open_db()
@@ -1379,9 +1435,9 @@ class ShareDB(object):
     @alivemethod
     def clear(self):
         '''
-        User function to remove all data stored in a ShareDB instance.
+        User function to remove all data stored in ShareDB instance.
 
-        Returns - self to ShareDB object.
+        Returns: self to ShareDB object.
 
         clear test cases.
 
@@ -1409,9 +1465,9 @@ class ShareDB(object):
 
     def close(self):
         '''
-        User function to save and close ShareDB instance if unclosed.
+        User function to save and close ShareDB instance.
 
-        Returns - True if closed, otherwise False
+        Returns: True if closed, otherwise False
 
         close test cases.
 
@@ -1449,7 +1505,7 @@ class ShareDB(object):
         '''
         User function to delete a ShareDB instance.
 
-        Returns - True if closed, otherwise False
+        Returns: True if dropped, otherwise False
 
         drop test cases.
 

@@ -345,9 +345,9 @@ def clean_myDB_resources(myDB, key_val_dict, non_key_set):
     non_key_set  = None
 
 @pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
-def test_random_contains(total):
+def test_random_contains_has_multikey(total):
     '''
-    Test random has_key/__contains__.
+    Test random has_key/__contains__/has_multikey.
     '''
     # Buid and unpack myDB and other resources
     myDB, key_val_dict, non_key_set = get_myDB_resources(total)
@@ -357,6 +357,10 @@ def test_random_contains(total):
         assert key in myDB
     for non_key in non_key_set:
         assert myDB.has_key(non_key) == False
+
+    # Successful random has_multikey
+    assert all(myDB.has_multikey(key_val_dict.keys())) == True
+    assert not all(myDB.has_multikey(non_key_set))   == True
 
     # Clear resources
     clean_myDB_resources(myDB, key_val_dict, non_key_set)
