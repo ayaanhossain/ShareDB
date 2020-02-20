@@ -1412,8 +1412,7 @@ class ShareDB(object):
     @alivemethod
     def sync(self):
         '''
-        User function to flush all inserts/changes/commits to ShareDB
-        instance on disk.
+        User function to flush all commits to ShareDB instance on disk.
 
         Returns: self to ShareDB object.
         '''

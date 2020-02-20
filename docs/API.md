@@ -373,7 +373,7 @@ User function to **iterate** over **multiple popped** `(key, value)` pairs from 
 ---
 **sync(self)**
 
-User function to **flush all inserts/changes/commits** to `ShareDB` instance on disk.
+User function to **flush all commits** to `ShareDB` instance on disk.
 
 **_Returns_**: `self` to `ShareDB` object.
 
