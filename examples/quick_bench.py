@@ -33,7 +33,7 @@ def read_thp(store_path):
         t0  = time.time()
         val = kvStore[i]
         tt += time.time() - t0
-        print('READER thp @ {:.2f} rd/sec | FILL {:.2f}%'.format(
+        print('READER thp @ {:.2f} rd/sec | SCAN {:.2f}%'.format(
             i / tt, (100. * i) / len(kvStore)))
         i += 1
 

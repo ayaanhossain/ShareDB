@@ -145,7 +145,7 @@ def main():
     # Setup variables
     inDB_path = './task_DBs/in.ShareDB'
     num_task  = 100
-    num_proc  = cpu_count() - 1
+    num_proc  = cpu_count()
 
     # Log starting time
     t0 = time.time()
@@ -154,6 +154,10 @@ def main():
     task_streamer = Process(
         target=stream_tasks, args=(inDB_path, num_task, num_proc))
     task_streamer.start()
+
+    # Join streamer process
+    task_streamer.join()
+    task_streamer.terminate()
 
     # Fire task executors
     task_executors = []
@@ -167,9 +171,7 @@ def main():
         task_executors.append(task_executor)
         task_executor.start()
 
-    # Join all processes
-    task_streamer.join()
-    task_streamer.terminate()
+    # Join all executor processes
     for task_executor in task_executors:
         task_executor.join()
 
