@@ -75,7 +75,7 @@ def para_conv(inDB_path, outDB_path, exec_id, num_proc):
         serial='msgpack',   # msgpack offers optimal serialization for lists
         readers=num_proc+1, # At most 2 processes would read outDB in parallel
         compress=True,      # Serialized msgpack-ed lists are further compressed
-        map_size=10**8 // num_proc) # And we split total allocation uniformly
+        map_size=5*10**8 // num_proc) # And we split total allocation uniformly
 
     # Setup auxillary bookeeping
     current_token  = exec_id                 # First task token
