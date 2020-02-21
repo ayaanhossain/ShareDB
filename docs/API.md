@@ -271,7 +271,7 @@ User function to **pop** a **single** `key` from `ShareDB` instance and return i
 |--|--|--|--|
 | `key` | `object` | a valid key to be popped | -- |
 
-_Returns_ - Unpacked `value` corresponding to `key`, otherwise `KeyError`.
+**_Returns_** - Unpacked `value` corresponding to `key`, otherwise `KeyError`.
 
 ```python
 >>> myDB.pop(3)

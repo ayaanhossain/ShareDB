@@ -46,7 +46,7 @@
  2. the data needs to be **shared across multiple processes** with minimal overhead, and 
  3. the **keys** and **values** can be (de)serialized via **msgpack** or **pickle**.
 
-A `ShareDB` instance may be opened simultaneously in children, for reading in parallel, while a single parent writes to the instance. **Parallel writes made across processes are not safe**; they are not guaranteed to be written, and may corrupt instance. `ShareDB` is primarily developed and tested using **Linux** and is compatible with both **Python 2.7 and 3.8**.
+A `ShareDB` instance may be opened simultaneously in children, for reading in parallel, as long as a single process writes to the instance. **Parallel writes made across processes are not safe**; they are not guaranteed to be written, and may corrupt instance. `ShareDB` is primarily developed and tested using **Linux** and is compatible with both **Python 2.7 and 3.8**.
 
 ### `ShareDB` in Action
 ```python
@@ -77,7 +77,7 @@ KeyError: "key=non-existent key of <class 'str'> is absent"
 >>> myDB.drop()                           # Close/delete when you're done
 True
 ```
-`ShareDB` methods either return data/result up on appropriate query, or a `self` object is returned to facilitate method chaining. Terminal methods `.close()` and `.drop()` return a boolean indicating success.
+`ShareDB` methods either return data/result up on appropriate query, or a `self` is returned to facilitate method chaining. Terminal methods `.close()` and `.drop()` return a boolean indicating success.
 
 Please see the `/examples/` directory for a full example of `ShareDB` usage.  Please see the [API.md](./docs/API.md) file for API details.
 
@@ -101,7 +101,7 @@ You can **install** all **dependencies** from **requirements.txt** inside `/Shar
 $ cd ShareDB
 $ pip install -r requirements.txt
 ```
-Or, you can directly **install** all **dependencies** and `ShareDB` via `setup.py`
+You can then **install** `ShareDB` via `setup.py`
 ```bash
 $ python setup.py install
 ```
