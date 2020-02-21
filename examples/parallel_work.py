@@ -29,7 +29,7 @@ def stream_tasks(inDB_path, num_task, num_proc):
         serial='msgpack',   # msgpack offers optimal serialization for lists
         readers=num_proc+1, # Allow all (num_proc) processes to read in parallel
         compress=True,      # Serialized msgpack-ed lists are further compressed
-        map_size=10**8)     # And we estimate to require ~100MB for results
+        map_size=5*10**8)     # And we estimate to require ~500MB for results
 
     # Queue all work
     current_token = 0
