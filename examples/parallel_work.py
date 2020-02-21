@@ -137,6 +137,7 @@ def merge_results(mergeDB_path, outDB_paths):
         outDB = ShareDB(outDB_path)
         mergeDB.multiset(outDB.items())
         print('Merged results = {}'.format(len(mergeDB)))
+        outDB.drop()
 
     # All results merged ... we're done!
     mergeDB.close()
@@ -147,7 +148,8 @@ def main():
     num_task  = 100
     num_proc  = cpu_count()
 
-    # Log starting time
+    
+    # Log streaming starting time
     t0 = time.time()
 
     # Fire task streamer
@@ -158,6 +160,13 @@ def main():
     # Join streamer process
     task_streamer.join()
     task_streamer.terminate()
+
+    # Log elapsed time
+    print('\nTask Streaming = {} seconds\n'.format(time.time()-t0))
+
+    
+    # Log execution starting time
+    t0 = time.time()
 
     # Fire task executors
     task_executors = []
@@ -175,6 +184,13 @@ def main():
     for task_executor in task_executors:
         task_executor.join()
 
+    # Log elapsed time
+    print('\nTask Execution = {} seconds\n'.format(time.time()-t0))
+
+    
+    # Log execution starting time
+    t0 = time.time()
+
     # Merge all results
     mergeDB_path = './task_DBs/results.ShareDB'
     merge_results(mergeDB_path, outDB_paths)
@@ -183,7 +199,7 @@ def main():
     shutil.rmtree('task_DBs')
 
     # Log elapsed time
-    print('Total time elapsed = {} seconds'.format(time.time()-t0))
+    print('\nResult Merging = {} seconds\n'.format(time.time()-t0))
 
 
 if __name__ == '__main__':
