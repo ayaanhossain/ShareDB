@@ -137,7 +137,6 @@ def merge_results(mergeDB_path, outDB_paths):
         outDB = ShareDB(outDB_path)
         mergeDB.multiset(outDB.items())
         print('Merged results = {}'.format(len(mergeDB)))
-        outDB.drop()
 
     # All results merged ... we're done!
     mergeDB.close()
@@ -145,7 +144,7 @@ def merge_results(mergeDB_path, outDB_paths):
 def main():
     # Setup variables
     inDB_path = './task_DBs/in.ShareDB'
-    num_task  = 100
+    num_task  = 500
     num_proc  = cpu_count()
 
     
