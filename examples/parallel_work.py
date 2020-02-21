@@ -16,6 +16,7 @@ free for computing the actual result. Additionally, all values are
 stored in compressed format, further minimizing disk space.
 '''
 
+
 def stream_tasks(inDB_path, num_task, num_proc):
     '''
     This procedure generates all vector pairs and stores them
@@ -48,17 +49,19 @@ def stream_tasks(inDB_path, num_task, num_proc):
         
         current_token += 1 # Jump to next token
 
-    # Queue all task end tokens
-    current_token = 0
-    while current_token < num_proc:
-        inDB['END{}'.format(current_token)] = True
-        print('ISSUED END TOKEN # {}'.format(current_token))
-        current_token += 1
-
     # Close inDB
     inDB.close()
 
-def para_conv(inDB_path, outDB_path, exec_id, num_proc):
+def stream_task_token(exec_id, num_task, num_proc):
+    '''
+    Helper function, simulates range(start, stop, incr).
+    '''
+    i = exec_id
+    while i < num_task:
+        yield i
+        i += num_proc
+
+def para_conv(inDB_path, outDB_path, exec_id, num_task, num_proc):
     '''
     This procedure computes the convolution of vector pairs stored in a
     ShareDB instance located at inDB_path, and writes the results in a
@@ -77,43 +80,21 @@ def para_conv(inDB_path, outDB_path, exec_id, num_proc):
         compress=True,      # Serialized msgpack-ed lists are further compressed
         map_size=5*10**8 // num_proc) # And we split total allocation uniformly
 
-    # Setup auxillary bookeeping
-    current_token  = exec_id                 # First task token
-    task_end_token = 'END{}'.format(exec_id) # Stop when we see this token
-    log_wait_info  = True                    # Do we log our waiting status?
-
     # Actual computation loop
-    while True:
-        # We do not have anything to compute on
-        if current_token not in inDB:
-            # We do not have instruction to exit yet
-            if task_end_token not in inDB:
-                # We need to log our waiting status
-                if log_wait_info:
-                    print('WAITING WORK # {}'.format(current_token))
-                    log_wait_info = False # No more logging status for now
-                # Continue waiting
-                continue
-            # We have instructions to exit
-            else:
-                # Log exit status
-                print('EXECUTOR # {} COMPLETED'.format(exec_id))
-                break
+    for current_token in stream_task_token(exec_id, num_task, num_proc):
+        # Log execution initation
+        print('EXECUTING WORK # {}'.format(current_token))
 
-        # We got a valid token to fetch work
-        else:
-            # Next time we don't have work, we'll log waiting status
-            log_wait_info = True
+        # Actuala execution
+        X, Y   = inDB[current_token]     # Get vector pair
+        result = list(np.convolve(X, Y)) # Compute and store result in a list
+        outDB[current_token] = result    # Insert compressed result in outDB
+        
+        # Log execution computation
+        print('COMPLETED WORK # {}'.format(current_token))
 
-            print('EXECUTING WORK # {}'.format(current_token))
-            
-            X, Y   = inDB[current_token]     # Get vector pair
-            result = list(np.convolve(X, Y)) # Compute and store result in a list
-            outDB[current_token] = result    # Insert compressed result in outDB
-            
-            print('COMPLETED WORK # {}'.format(current_token))
-            
-            current_token += num_proc # Jump to next token
+    # Log executor completion
+    print('EXECUTOR # {} COMPLETED'.format(exec_id))
 
     # Time to close outDB ... we're done!
     outDB.close()
@@ -130,7 +111,7 @@ def merge_results(mergeDB_path, outDB_paths):
         serial='msgpack',   # msgpack offers optimal serialization for lists
         readers=2,          # At most 2 processes would read outDB in parallel
         compress=True,      # Serialized msgpack-ed lists are further compressed
-        map_size=10**8)     # And we estimate to require ~10MB for results
+        map_size=5*10**8)     # And we estimate to require ~500MB for results
 
     # Merge all individual results
     for outDB_path in outDB_paths:
@@ -158,7 +139,6 @@ def main():
 
     # Join streamer process
     task_streamer.join()
-    task_streamer.terminate()
 
     # Log elapsed time
     print('\nTask Streaming = {} seconds\n'.format(time.time()-t0))
@@ -175,7 +155,7 @@ def main():
         outDB_paths.append(outDB_path)
         task_executor = Process(
             target=para_conv, args=(
-                inDB_path, outDB_path, exec_id, num_proc))
+                inDB_path, outDB_path, exec_id, num_task, num_proc))
         task_executors.append(task_executor)
         task_executor.start()
 
