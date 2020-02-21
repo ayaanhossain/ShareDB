@@ -81,17 +81,22 @@ def para_conv(inDB_path, outDB_path, exec_id, num_task, num_proc):
         map_size=5*10**8 // num_proc) # And we split total allocation uniformly
 
     # Actual computation loop
-    for current_token in stream_task_token(exec_id, num_task, num_proc):
+    key_iter = stream_task_token(exec_id, num_task, num_proc)
+    current_token = exec_id
+    # Get vector pairs
+    for X, Y in inDB.multiget(key_iter):
         # Log execution initation
         print('EXECUTING WORK # {}'.format(current_token))
 
-        # Actuala execution
-        X, Y   = inDB[current_token]     # Get vector pair
+        # Actual execution
         result = list(np.convolve(X, Y)) # Compute and store result in a list
         outDB[current_token] = result    # Insert compressed result in outDB
         
         # Log execution computation
         print('COMPLETED WORK # {}'.format(current_token))
+
+        # Update token for logging
+        current_token += num_proc
 
     # Log executor completion
     print('EXECUTOR # {} COMPLETED'.format(exec_id))
@@ -125,7 +130,7 @@ def merge_results(mergeDB_path, outDB_paths):
 def main():
     # Setup variables
     inDB_path = './task_DBs/in.ShareDB'
-    num_task  = 500
+    num_task  = 100
     num_proc  = cpu_count()
 
     
