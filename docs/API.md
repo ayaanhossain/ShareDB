@@ -19,7 +19,7 @@
 |--|--|--|--|
 | `path` | `string` | a/path/to/a/directory/to/persist/the/data |  -- |
 | `reset` | `boolean` | if `True` - delete and recreate path following subsequent parameters | `False` |
-| `serial` | `string` | must be either `'msgpack'` or `'pickle'` | `False` |
+| `serial` | `string` | must be either `'msgpack'` or `'pickle'` | `'msgpack'` |
 | `compress` | `string` | if `True` - will compress the values using `zlib` | `False` |
 | `readers` | `integer` | max no. of processes that may read data in parallel | `100` |
 | `buffer_size` | `integer` | max no. of commits after which a sync is triggered | `100,000` |
