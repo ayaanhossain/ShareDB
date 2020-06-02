@@ -31,7 +31,7 @@ def stream_tasks(inDB_path, num_task, num_proc):
         serial='msgpack',   # msgpack offers optimal serialization for lists
         readers=num_proc+1, # Allow all (num_proc) processes to read in parallel
         compress=True,      # Serialized msgpack-ed lists are further compressed
-        map_size=5*10**8)     # And we estimate to require ~500MB for results
+        map_size=5*10**8)   # And we estimate to require ~500MB for results
 
     # Queue all work
     current_token = 0
@@ -117,7 +117,7 @@ def merge_results(mergeDB_path, outDB_paths):
         serial='msgpack',   # msgpack offers optimal serialization for lists
         readers=2,          # At most 2 processes would read outDB in parallel
         compress=True,      # Serialized msgpack-ed lists are further compressed
-        map_size=5*10**8)     # And we estimate to require ~500MB for results
+        map_size=5*10**8)   # And we estimate to require ~500MB for results
 
     # # Open and chain all key-value pairs in results
     # outDB_list = (ShareDB(path) for path in outDB_paths)
