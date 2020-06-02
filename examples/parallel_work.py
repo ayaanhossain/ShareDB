@@ -1,5 +1,6 @@
 from ShareDB         import ShareDB
 from multiprocessing import Process, cpu_count
+from itertools       import chain
 
 import numpy as np
 import time
@@ -117,6 +118,17 @@ def merge_results(mergeDB_path, outDB_paths):
         readers=2,          # At most 2 processes would read outDB in parallel
         compress=True,      # Serialized msgpack-ed lists are further compressed
         map_size=5*10**8)     # And we estimate to require ~500MB for results
+
+    # # Open and chain all key-value pairs in results
+    # outDB_list = (ShareDB(path) for path in outDB_paths)
+    # results    = chain.from_iterable(
+    #     outDB.items() for outDB in outDB_list)
+
+    # # Merge all individual results
+    # mergeDB.multiset(results)
+
+    # # All results merged ... we're done!
+    # mergeDB.close()
 
     # Merge all individual results
     for outDB_path in outDB_paths:
