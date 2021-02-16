@@ -43,7 +43,7 @@
 `ShareDB` is a lightweight, **persistent key-value store** with a **dictionary-like interface** built on top of [LMDB](https://symas.com/lmdb/). It is intended to replace a python dictionary when
 
  1. the key-value information needs to **persist locally** for later reuse,
- 2. the data needs to be **shared across multiple processes** with minimal overhead, and 
+ 2. the data needs to be **shared across multiple processes** with minimal overhead, and
  3. the **keys** and **values** can be (de)serialized via **msgpack** or **pickle**.
 
 A `ShareDB` instance may be opened simultaneously in children, for reading in parallel, as long as a single process writes to the instance. **Parallel writes made across processes are not safe**; they are not guaranteed to be written, and may corrupt instance. `ShareDB` is primarily developed and tested using **Linux** and is compatible with both **Python 2.7 and 3.8**.
@@ -52,7 +52,7 @@ A `ShareDB` instance may be opened simultaneously in children, for reading in pa
 ```python
 >>> from ShareDB import ShareDB           # Easy import
 >>> print(ShareDB.__version__)            # Check version
-0.4.5
+1.0.2
 >>> myDB = ShareDB(path='./test.ShareDB') # Store ShareDB locally
 >>> myDB['Name'] = ['Ayaan Hossain']      # Insert information
 >>> myDB.get(key='Name')                  # Retrieve values

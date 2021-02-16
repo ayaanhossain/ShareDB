@@ -40,7 +40,7 @@ class ShareDB(object):
     (1) the key-value information needs to persist locally for later reuse,
     (2) the data needs to be shared across multiple processes with minimal overhead, and
     (3) the keys and values can be (de)serialized via msgpack or pickle.
-    
+
     A ShareDB instance may be opened simultaneously in children, for reading in parallel,
     while a single parent writes to the instance. Parallel writes made across processes
     are not safe; they are not guaranteed to be written, and may corrupt instance. ShareDB
@@ -48,7 +48,7 @@ class ShareDB(object):
     and 3.8.
     '''
 
-    __version__ = '1.0.1'
+    __version__ = '1.0.2'
 
     __author__  = 'Ayaan Hossain'
 
@@ -78,7 +78,7 @@ class ShareDB(object):
                       (default=100,000)
         map_size    - integer, max amount of bytes to allocate for storage
                       (default=1GB)
-    
+
         Returns: self to ShareDB object.
 
         __init__ test cases.
@@ -186,26 +186,26 @@ class ShareDB(object):
             # Setup ShareDB instance
             self.PATH  = path  # Path to ShareDB
             self.ALIVE = True  # Instance is alive
-            
+
             # (Un)serialization scheme argument
             self.SERIAL = config.get('ShareDB Config', 'SERIAL')
-            
+
             # Whether to compress packed values for storage?
             self.COMPRESS = config.getboolean('ShareDB Config', 'COMPRESS')
-            
+
             # Serialization function to use for (un)packing keys and values
             self.KEYP, self.KEYU, self.VALP, self.VALU = ShareDB._get_serial_funcs(
                 serial=self.SERIAL, compress=self.COMPRESS)
-            
+
             # Number of processes reading in parallel
             self.READERS = config.getint('ShareDB Config', 'READERS')
-            
+
             # Trigger sync after this many items inserted
             self.BCSIZE = config.getint('ShareDB Config', 'BCSIZE')
-            
+
             # Approx. no. of items to sync in ShareDB
             self.BQSIZE = 0
-            
+
             # Memory map size, maybe larger than RAM
             self.MSLIMIT = config.getint('ShareDB Config', 'MSLIMIT')
 
@@ -220,7 +220,7 @@ class ShareDB(object):
                 map_async=True,
                 max_readers=self.READERS,
                 max_dbs=0,
-                lock=True)
+                lock=False)
 
         except Exception as E:
             raise TypeError(
@@ -334,11 +334,11 @@ class ShareDB(object):
             raise ValueError(
                 'serial must be \'msgpack\' or \'pickle\' not {}'.format(
                     serial))
-        
+
         # Setup base (un)packing functions
         base_packer   = ShareDB._get_base_packer(serial)
         base_unpacker = ShareDB._get_base_unpacker(serial)
-        
+
         # Setup key (un)packing functions
         key_packer    = base_packer
         key_unpacker  = base_unpacker

@@ -2,8 +2,6 @@ from setuptools import setup
 from os import path
 from io import open
 
-import ShareDB
-
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
@@ -15,22 +13,35 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='ShareDB',
-    
+
     # Link: https://www.python.org/dev/peps/pep-0440/#version-scheme
-    version=ShareDB.__version__,
-    
-    description=ShareDB.__doc__,
-    
+    version='1.0.2',
+
+    description='''
+    ShareDB is a lightweight, persistent key-value store with a dictionary-like interface
+    built on top of LMDB. It is intended to replace a python dictionary when
+
+    (1) the key-value information needs to persist locally for later reuse,
+    (2) the data needs to be shared across multiple processes with minimal overhead, and
+    (3) the keys and values can be (de)serialized via msgpack or pickle.
+
+    A ShareDB instance may be opened simultaneously in children, for reading in parallel,
+    while a single parent writes to the instance. Parallel writes made across processes
+    are not safe; they are not guaranteed to be written, and may corrupt instance. ShareDB
+    is primarily developed and tested using Linux and is compatible with both Python 2.7
+    and 3.8.
+    ''',
+
     long_description=long_description,
-    
+
     long_description_content_type='text/markdown/html',
-    
+
     url='https://github.com/ayaanhossain/ShareDB',
-    
-    author=ShareDB.__author__,
-    
+
+    author='Ayaan Hossain',
+
     # author_email='someone@somewhere.com',  # Optional
-    
+
     classifiers=[  # Optional
         # How mature is this project? Common values are
         #   3 - Alpha

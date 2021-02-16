@@ -38,16 +38,16 @@ def stream_tasks(inDB_path, num_task, num_proc):
     while current_token < num_task:
         # Choose vector size
         base_size = np.random.randint(10**4, 10**5)
-        
+
         # Generate vectors
-        X = list(np.random.randint(100, size=(1, base_size))[0])
-        Y = list(np.random.randint(100, size=(1, base_size))[0])
-        
+        X = tuple(int(v) for v in np.random.randint(100, size=(1, base_size))[0])
+        Y = tuple(int(v) for v in np.random.randint(100, size=(1, base_size))[0])
+
         # Write to inDB
-        inDB[current_token] = [X, Y]
-        
+        inDB[current_token] = (X, Y)
+
         print('QUEUED WORK # {}'.format(current_token))
-        
+
         current_token += 1 # Jump to next token
 
     # Close inDB
@@ -90,9 +90,9 @@ def para_conv(inDB_path, outDB_path, exec_id, num_task, num_proc):
         print('EXECUTING WORK # {}'.format(current_token))
 
         # Actual execution
-        result = list(np.convolve(X, Y)) # Compute and store result in a list
+        result = tuple(int(v) for v in np.convolve(X, Y)) # Compute and store result in a list
         outDB[current_token] = result    # Insert compressed result in outDB
-        
+
         # Log execution computation
         print('COMPLETED WORK # {}'.format(current_token))
 
@@ -145,7 +145,7 @@ def main():
     num_task  = 100
     num_proc  = cpu_count()
 
-    
+
     # Log streaming starting time
     t0 = time.time()
 
@@ -160,7 +160,7 @@ def main():
     # Log elapsed time
     print('\nTask Streaming = {} seconds\n'.format(time.time()-t0))
 
-    
+
     # Log execution starting time
     t0 = time.time()
 
@@ -183,7 +183,7 @@ def main():
     # Log elapsed time
     print('\nTask Execution = {} seconds\n'.format(time.time()-t0))
 
-    
+
     # Log execution starting time
     t0 = time.time()
 

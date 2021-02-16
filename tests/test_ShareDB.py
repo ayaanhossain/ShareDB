@@ -217,7 +217,7 @@ def test_random_set_and_get(msgpack_myDB, pickle_myDB, total):
         key = next(gri_stream)
         val = next(gri_stream)
         if key not in verification:
-            msgpack_myDB.set(key=key, val=val)      
+            msgpack_myDB.set(key=key, val=val)
             pickle_myDB[key]  = val
             verification[key] = val
 
@@ -395,7 +395,7 @@ def test_random_remove(total):
     # remove that raises Exception
     with pytest.raises(TypeError) as error:
         myDB.remove(None)
-    
+
     clean_myDB_resources(myDB, key_val_dict, non_key_set)
 
 @pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
@@ -404,7 +404,7 @@ def test_random_multiremove(total):
     Test random multiremove and related Exception.
     '''
     myDB, key_val_dict, non_key_set = get_myDB_resources(total)
-    
+
     # Successful random multiremove
     while len(myDB):
         factor   = random.randint(0, len(myDB))
@@ -412,11 +412,11 @@ def test_random_multiremove(total):
         myDB.multiremove(key_iter=(key_val_dict.popitem()[0] for _ in range(factor)))
         assert len(myDB) == prev_len - factor
     myDB.multiremove(non_key_set)
-    
+
     # multiremove that raises Exception
     with pytest.raises(Exception) as error:
         myDB.multiremove([None]*factor)
-    
+
     clean_myDB_resources(myDB, key_val_dict, non_key_set)
 
 @pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
@@ -425,13 +425,13 @@ def test_random_pop(total):
     Test random pop and related Exceptions.
     '''
     myDB, key_val_dict, non_key_set = get_myDB_resources(total)
-    
+
     # Successful random pop
     for key in key_val_dict:
         val = myDB.pop(key)
         assert key not in myDB
         assert key_val_dict[key] == val
-    
+
     # pops that raise KeyError
     for key in key_val_dict:
         with pytest.raises(KeyError) as error:
@@ -439,7 +439,7 @@ def test_random_pop(total):
     for non_key in non_key_set:
         with pytest.raises(KeyError) as error:
             myDB.pop(non_key)
-    
+
     clean_myDB_resources(myDB, key_val_dict, non_key_set)
 
 @pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
@@ -448,7 +448,7 @@ def test_random_multipop(total):
     Test random multipop.
     '''
     myDB, key_val_dict, non_key_set = get_myDB_resources(total)
-    
+
     # Successful random multipop
     while len(key_val_dict):
         factor   = random.randint(0, len(myDB))
@@ -459,7 +459,7 @@ def test_random_multipop(total):
         assert [key_val_dict[key] for key in keys_to_pop] == popped_vals
         for key in keys_to_pop:
             key_val_dict.pop(key)
-    
+
     # multipop that raises Exception
     with pytest.raises(Exception) as error:
         next(myDB.multipop(key_iter=non_key_set))
@@ -536,11 +536,11 @@ def test_random_multipopitem(total):
         for popped_key,popped_val in popped_items:
             assert key_val_dict[popped_key] == popped_val
         assert len(myDB) == max(0, prev_len - num_items)
-    
+
     # multiremove that raises Exception
     with pytest.raises(Exception) as error:
         myDB.multiremove([None]*factor)
-    
+
     clean_myDB_resources(myDB, key_val_dict, non_key_set)
 
 @pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
@@ -550,7 +550,7 @@ def test_random_clear(total):
     '''
     myDB, key_val_dict, non_key_set = get_myDB_resources(total)
     myDB.clear()
-    assert len(myDB) == 0    
+    assert len(myDB) == 0
     clean_myDB_resources(myDB, key_val_dict, non_key_set)
 
 if __name__ == '__main__':
