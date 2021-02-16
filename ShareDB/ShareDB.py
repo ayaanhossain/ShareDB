@@ -220,7 +220,7 @@ class ShareDB(object):
                 map_async=True,
                 max_readers=self.READERS,
                 max_dbs=0,
-                lock=False)
+                lock=True)
 
         except Exception as E:
             raise TypeError(
