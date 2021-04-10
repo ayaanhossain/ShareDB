@@ -17,7 +17,7 @@ setup(
     # Link: https://www.python.org/dev/peps/pep-0440/#version-scheme
     version='1.0.3',
 
-    description="ShareDB is an on-disk pythonic embedded key-value store based on LMDB for compressed data storage and distributed data analysis via regular multiprocessing approaches",
+    description="An on-disk pythonic embedded key-value store based on LMDB for compressed data storage and distributed data analysis via regular multiprocessing approaches.",
 
     long_description=long_description,
 
