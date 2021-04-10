@@ -1,6 +1,6 @@
 ﻿<h1 align="center">
-	<a href="https://github.com/ayaanhossain/ShareDB/">
-		<img src="./logo/logo.svg"  alt="ShareDB" width="250"/>
+    <a href="https://github.com/ayaanhossain/ShareDB/">
+        <img src="https://raw.githubusercontent.com/ayaanhossain/ShareDB/master/logo/logo.svg?sanitize=true"  alt="ShareDB" width="460" class="center"/>
     </a>
 </h1>
 
@@ -13,12 +13,12 @@
 		<img src="https://codecov.io/gh/ayaanhossain/ShareDB/branch/master/graph/badge.svg?token=syTKRG9H8O"
 		 alt="codecov-badge">
     </a>
-	<a href="https://img.shields.io/badge/version-0.1.6-blue">
-		<img src="https://img.shields.io/badge/version-0.1.6-blue"
+	<a href="https://pypi.org/project/ShareDB/">
+		<img src="https://img.shields.io/pypi/v/ShareDB"
 		 alt="version-badge">
 	</a>
-	<a href="https://img.shields.io/badge/python-2.7%20%7C%203.8-blue">
-	    <img src="https://img.shields.io/badge/python-2.7%20%7C%203.8-blue"
+	<a href="https://pypi.org/project/ShareDB/">
+	    <img src="https://img.shields.io/pypi/pyversions/ShareDB"
 	     alt="python-badge">
     </a>
     <a href="https://img.shields.io/badge/os-Linux-9cf">
@@ -26,7 +26,7 @@
 	     alt="os-badge">
     </a>
 	<a href="./LICENSE">
-	    <img src="https://img.shields.io/badge/license-MIT-yellow"
+	    <img src="https://img.shields.io/pypi/l/ShareDB"
 	     alt="license-badge">
     </a>
 </p>
@@ -52,7 +52,7 @@ A `ShareDB` instance may be opened simultaneously in children, for reading in pa
 ```python
 >>> from ShareDB import ShareDB           # Easy import
 >>> print(ShareDB.__version__)            # Check version
-1.0.2
+1.0.3
 >>> myDB = ShareDB(path='./test.ShareDB') # Store ShareDB locally
 >>> myDB['Name'] = ['Ayaan Hossain']      # Insert information
 >>> myDB.get(key='Name')                  # Retrieve values
