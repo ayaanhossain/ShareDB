@@ -79,7 +79,7 @@ True
 ```
 `ShareDB` methods either return data/result up on appropriate query, or a `self` is returned to facilitate method chaining. Terminal methods `.close()` and `.drop()` return a boolean indicating success.
 
-Please see the `/examples/` directory for a full example of `ShareDB` usage.  Please see the [API.md](./docs/API.md) file for API details.
+Please see the `/examples/` directory for full examples of `ShareDB` usage.  Please see the [API.md](./docs/API.md) file for API details.
 
 ### Installation
 One-shot **installation/upgrade** of `ShareDB` from **PyPI**
@@ -116,7 +116,7 @@ $ pip uninstall ShareDB
 ```
 
 ### License
-`ShareDB` (c) 2019-2020 Ayaan Hossain.
+`ShareDB` (c) 2019-2021 Ayaan Hossain.
 
 `ShareDB` is an **open-source software** under [MIT](https://opensource.org/licenses/MIT) License.
 
@@ -125,14 +125,14 @@ See [LICENSE](./LICENSE) file for more details.
 ### Contributing
 Please **discuss** any issues/bugs you're facing, or any changes/features you have in mind by **opening an issue**, following the [Contributor Covenant](https://www.contributor-covenant.org/version/2/0/code_of_conduct). See [COC.md](./docs/COC.md) file for details. Please provide detailed **information**, and code **snippets** to facilitate debugging.
 
-To contribute to `ShareDB`, please **clone** this repository, **commit** your code on a **separate new branch**, and **submit** a **pull request**. Please annotate and describe all **new** and **modified code** with detailed **comments** and **new unit tests**. Please ensure that modified builds **pass existing unit tests**.  For versioning, we use [SemVer](https://semver.org/).
+To contribute to `ShareDB`, please **clone** this repository, **commit** your code on a **separate new branch**, and **submit** a **pull request**. Please annotate and describe all **new** and **modified code** with detailed **comments** and **new unit tests** as applicable. Please ensure that modified builds **pass existing unit tests** before sending pull-requests.  For versioning, we use [SemVer](https://semver.org/).
 
 ### Acknowledgements
 `ShareDB` is maintained by:
 
  - Ayaan Hossain | [github.com/ayaanhossain](https://github.com/ayaanhossain) | [@bioalgorithmist](https://twitter.com/bioalgorithmist)
 
-`ShareDB` was originally written to meet data analytics needs in [Prof. Howard Salis](https://twitter.com/hsalis)' Lab at [Penn State University](https://salislab.net/).
+`ShareDB` was originally written to meet data analysis needs in [Prof. Howard Salis](https://twitter.com/hsalis)' Lab at [Penn State University](https://salislab.net/).
 
 Prof. Salis has funded the initial development of `ShareDB`.
 
