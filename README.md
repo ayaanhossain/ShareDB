@@ -1,6 +1,6 @@
 ﻿<h1 align="center">
     <a href="https://github.com/ayaanhossain/ShareDB/">
-        <img src="https://raw.githubusercontent.com/ayaanhossain/ShareDB/master/logo/logo.svg?sanitize=true"  alt="ShareDB" width="460" class="center"/>
+        <img src="https://raw.githubusercontent.com/ayaanhossain/ShareDB/master/logo/logo.svg?sanitize=true"  alt="ShareDB" width="260" class="center"/>
     </a>
 </h1>
 
