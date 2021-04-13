@@ -12,7 +12,7 @@ class ShareDB(object):
     __license__ = '''
     MIT License
 
-    Copyright (c) 2019-2020 Ayaan Hossain
+    Copyright (c) 2019-2021 Ayaan Hossain
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
@@ -48,7 +48,7 @@ class ShareDB(object):
     and 3.8.
     '''
 
-    __version__ = '1.0.4'
+    __version__ = '1.0.5'
 
     __author__  = 'Ayaan Hossain'
 
