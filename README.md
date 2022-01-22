@@ -116,7 +116,7 @@ $ pip uninstall ShareDB
 ```
 
 ### License
-`ShareDB` (c) 2019-2021 Ayaan Hossain.
+`ShareDB` (c) 2019-2022 Ayaan Hossain.
 
 `ShareDB` is an **open-source software** under [MIT](https://opensource.org/licenses/MIT) License.
 
