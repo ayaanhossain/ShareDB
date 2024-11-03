@@ -45,21 +45,21 @@ class ShareDB(object):
     while a single parent writes to the instance. Parallel writes made across processes
     are not safe; they are not guaranteed to be written, and may corrupt instance. ShareDB
     is primarily developed and tested using Linux and is compatible with both Python 2.7
-    and 3.8.
+    and Python 3.6 and above.
     '''
 
-    __version__ = '1.0.6'
+    __version__ = '1.0.7'
 
     __author__  = 'Ayaan Hossain'
 
     def __init__(self,
         path,
         reset       = False,
-        serial      = 'msgpack',
+        serial      = 'pickle',
         compress    = False,
         readers     = 100,
         buffer_size = 10**5,
-        map_size    = 10**9):
+        map_size    = 10**12):
         '''
         ShareDB constructor.
 
@@ -68,7 +68,7 @@ class ShareDB(object):
                       subsequent parameters
                       (default=False)
         serial      - string, must be either 'msgpack' or 'pickle'
-                      (default='msgpack')
+                      (default='pickle')
         compress    - boolean, if True - will compress the values using zlib
                       (default=False)
         readers     - integer, max no. of processes that may read data in
@@ -77,7 +77,7 @@ class ShareDB(object):
         buffer_size - integer, max no. of commits after which a sync is triggered
                       (default=100,000)
         map_size    - integer, max amount of bytes to allocate for storage
-                      (default=1GB)
+                      (default=1TB)
 
         Returns: self to ShareDB object.
 
@@ -1205,6 +1205,9 @@ class ShareDB(object):
         >>> myDB.drop()
         True
         '''
+        if not any([yield_key, yield_val]):
+            raise ValueError(
+                'Both yield_key and yield_val to ._iter_on_disk_kv() are False or None')
         with self.DB.begin(write=False) as kviter:
             with kviter.cursor() as kvcursor:
                 for key, val in kvcursor:
@@ -1221,9 +1224,6 @@ class ShareDB(object):
                         yield val
                     elif yield_key and yield_val:
                         yield key, val
-                    else:
-                        raise ValueError(
-                            'All args to ._iter_on_disk_kv() are False or None')
 
     @alivemethod
     def items(self):

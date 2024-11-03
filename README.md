@@ -46,7 +46,7 @@
  2. the data needs to be **shared across multiple processes** with minimal overhead, and
  3. the **keys** and **values** can be (de)serialized via **msgpack** or **pickle**.
 
-A `ShareDB` instance may be opened simultaneously in children, for reading in parallel, as long as a single process writes to the instance. **Parallel writes made across processes are not safe**; they are not guaranteed to be written, and may corrupt instance. `ShareDB` is primarily developed and tested using **Linux** and is compatible with both **Python 2.7 and 3.8**.
+A `ShareDB` instance may be opened simultaneously in children, for reading in parallel, as long as a single process writes to the instance. **Parallel writes made across processes are not safe**; they are not guaranteed to be written, and may corrupt instance. `ShareDB` is primarily developed and tested using **Linux** and is compatible with both **Python 2.7 and Python 3.6 and above**.
 
 ### `ShareDB` in Action
 ```python
@@ -133,8 +133,6 @@ To contribute to `ShareDB`, please **clone** this repository, **commit** your co
  - Ayaan Hossain | [github.com/ayaanhossain](https://github.com/ayaanhossain) | [@bioalgorithmist](https://twitter.com/bioalgorithmist)
 
 `ShareDB` was originally written to meet data analysis needs in [Prof. Howard Salis](https://twitter.com/hsalis)' Lab at [Penn State University](https://salislab.net/).
-
-Prof. Salis has funded the initial development of `ShareDB`.
 
 ### API
 `ShareDB` API details can be found in the [API.md](./docs/API.md) file.

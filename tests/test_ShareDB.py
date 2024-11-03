@@ -313,7 +313,7 @@ def get_myDB_resources(total):
     # Initialize ShareDB instance
     myDB = ShareDB(path='./myDB',
         reset=True,
-        serial='msgpack',
+        serial=random.choice(['msgpack', 'pickle']),
         compress=random.choice([True, False]),
         readers=40,
         buffer_size=100,
@@ -338,11 +338,9 @@ def get_myDB_resources(total):
     # Return resources
     return myDB, key_val_dict, non_key_set
 
-def clean_myDB_resources(myDB, key_val_dict, non_key_set):
+def clean_myDB_resources(myDB):
+    '''Drop DB.'''
     myDB.drop()
-    myDB         = None
-    key_val_dict = None
-    non_key_set  = None
 
 @pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
 def test_random_contains_has_multikey(total):
@@ -363,7 +361,7 @@ def test_random_contains_has_multikey(total):
     assert not all(myDB.has_multikey(non_key_set))   == True
 
     # Clear resources
-    clean_myDB_resources(myDB, key_val_dict, non_key_set)
+    clean_myDB_resources(myDB)
 
 @pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
 def test_random_lengths(total):
@@ -373,10 +371,10 @@ def test_random_lengths(total):
     db_length = random.randint(total//10, total*10)
 
     # Successful random length
-    myDB, key_val_dict, non_key_set = get_myDB_resources(db_length)
+    myDB, _, __ = get_myDB_resources(db_length)
     assert len(myDB) == db_length
 
-    clean_myDB_resources(myDB, key_val_dict, non_key_set)
+    clean_myDB_resources(myDB)
 
 @pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
 def test_random_remove(total):
@@ -393,10 +391,10 @@ def test_random_remove(total):
         del myDB[key]
 
     # remove that raises Exception
-    with pytest.raises(TypeError) as error:
+    with pytest.raises(TypeError) as _:
         myDB.remove(None)
 
-    clean_myDB_resources(myDB, key_val_dict, non_key_set)
+    clean_myDB_resources(myDB)
 
 @pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
 def test_random_multiremove(total):
@@ -414,10 +412,10 @@ def test_random_multiremove(total):
     myDB.multiremove(non_key_set)
 
     # multiremove that raises Exception
-    with pytest.raises(Exception) as error:
+    with pytest.raises(Exception) as _:
         myDB.multiremove([None]*factor)
 
-    clean_myDB_resources(myDB, key_val_dict, non_key_set)
+    clean_myDB_resources(myDB)
 
 @pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
 def test_random_pop(total):
@@ -434,13 +432,13 @@ def test_random_pop(total):
 
     # pops that raise KeyError
     for key in key_val_dict:
-        with pytest.raises(KeyError) as error:
+        with pytest.raises(KeyError) as _:
             myDB.pop(key)
     for non_key in non_key_set:
-        with pytest.raises(KeyError) as error:
+        with pytest.raises(KeyError) as _:
             myDB.pop(non_key)
 
-    clean_myDB_resources(myDB, key_val_dict, non_key_set)
+    clean_myDB_resources(myDB)
 
 @pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
 def test_random_multipop(total):
@@ -461,74 +459,73 @@ def test_random_multipop(total):
             key_val_dict.pop(key)
 
     # multipop that raises Exception
-    with pytest.raises(Exception) as error:
+    with pytest.raises(Exception) as _:
         next(myDB.multipop(key_iter=non_key_set))
 
-    clean_myDB_resources(myDB, key_val_dict, non_key_set)
+    clean_myDB_resources(myDB)
 
 @pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
 def test_random_items(total):
     '''
     Test random items.
     '''
-    myDB, key_val_dict, non_key_set = get_myDB_resources(total)
+    myDB, key_val_dict, _ = get_myDB_resources(total)
     myDB_items   = set(myDB.items())
     mydict_items = set(key_val_dict.items())
     assert myDB_items == mydict_items
-    clean_myDB_resources(myDB, key_val_dict, non_key_set)
+    clean_myDB_resources(myDB)
 
 @pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
 def test_random_keys(total):
     '''
     Test random keys.
     '''
-    myDB, key_val_dict, non_key_set = get_myDB_resources(total)
+    myDB, key_val_dict, _ = get_myDB_resources(total)
     myDB_keys   = set(myDB.keys())
     mydict_keys = set(key_val_dict.keys())
     assert myDB_keys == mydict_keys
-    clean_myDB_resources(myDB, key_val_dict, non_key_set)
+    clean_myDB_resources(myDB)
 
 @pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
 def test_random_iters(total):
     '''
     Test random iters.
     '''
-    myDB, key_val_dict, non_key_set = get_myDB_resources(total)
+    myDB, key_val_dict, _ = get_myDB_resources(total)
     selected_keys = list(key_val_dict.keys())[:random.randint(0, total//10)]
     for key in selected_keys:
-        keys = iter(myDB)
-        assert key in keys
-    clean_myDB_resources(myDB, key_val_dict, non_key_set)
+        assert key in list(iter(myDB))
+    clean_myDB_resources(myDB)
 
 @pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
 def test_random_values(total):
     '''
     Test random values.
     '''
-    myDB, key_val_dict, non_key_set = get_myDB_resources(total)
+    myDB, key_val_dict, _ = get_myDB_resources(total)
     myDB_vals   = set(myDB.values())
     mydict_vals = set(key_val_dict.values())
     assert myDB_vals == mydict_vals
-    clean_myDB_resources(myDB, key_val_dict, non_key_set)
+    clean_myDB_resources(myDB)
 
 @pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
 def test_random_popitem(total):
     '''
     Test random popitem.
     '''
-    myDB, key_val_dict, non_key_set = get_myDB_resources(total)
+    myDB, key_val_dict, _ = get_myDB_resources(total)
     while key_val_dict:
         popped_key, popped_val = myDB.popitem()
         assert key_val_dict[popped_key] == popped_val
         key_val_dict.pop(popped_key)
-    clean_myDB_resources(myDB, key_val_dict, non_key_set)
+    clean_myDB_resources(myDB)
 
 @pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
 def test_random_multipopitem(total):
     '''
     Test random multipopitem.
     '''
-    myDB, key_val_dict, non_key_set = get_myDB_resources(total)
+    myDB, key_val_dict, _ = get_myDB_resources(total)
     while len(myDB):
         num_items = random.randint(0, len(myDB)*2)
         prev_len  = len(myDB)
@@ -541,17 +538,17 @@ def test_random_multipopitem(total):
     with pytest.raises(Exception) as error:
         myDB.multiremove([None]*factor)
 
-    clean_myDB_resources(myDB, key_val_dict, non_key_set)
+    clean_myDB_resources(myDB)
 
 @pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
 def test_random_clear(total):
     '''
     Test random clear.
     '''
-    myDB, key_val_dict, non_key_set = get_myDB_resources(total)
+    myDB, _, __ = get_myDB_resources(total)
     myDB.clear()
     assert len(myDB) == 0
-    clean_myDB_resources(myDB, key_val_dict, non_key_set)
+    clean_myDB_resources(myDB)
 
 if __name__ == '__main__':
     pass

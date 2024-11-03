@@ -19,11 +19,11 @@
 |--|--|--|--|
 | `path` | `string` | a/path/to/a/directory/to/persist/the/data |  -- |
 | `reset` | `boolean` | if `True` - delete and recreate path following subsequent parameters | `False` |
-| `serial` | `string` | must be either `'msgpack'` or `'pickle'` | `'msgpack'` |
+| `serial` | `string` | must be either `'msgpack'` or `'pickle'` | `'pickle'` |
 | `compress` | `string` | if `True` - will compress the values using `zlib` | `False` |
 | `readers` | `integer` | max no. of processes that may read data in parallel | `100` |
 | `buffer_size` | `integer` | max no. of commits after which a sync is triggered | `100,000` |
-| `map_size` | `integer` | max amount of bytes to allocate for storage | `10**9` (1 GB) |
+| `map_size` | `integer` | max amount of bytes to allocate for storage | `10**12` (1 TB) |
 
 **_Returns_**: `self` to `ShareDB` object.
 

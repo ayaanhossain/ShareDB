@@ -15,9 +15,9 @@ setup(
     name='ShareDB',
 
     # Link: https://www.python.org/dev/peps/pep-0440/#version-scheme
-    version='1.0.6',
+    version='1.0.7',
 
-    description="An on-disk pythonic embedded key-value store based on LMDB for compressed data storage and distributed data analysis via regular multiprocessing approaches.",
+    description="An on-disk pythonic embedded key-value store for compressed data storage and distributed data analysis.",
 
     long_description=long_description,
 
@@ -53,6 +53,9 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
     ],
     keywords='lmdb embedded key value store parallel data share read multiprocessing db',
 
