@@ -535,8 +535,8 @@ def test_random_multipopitem(total):
         assert len(myDB) == max(0, prev_len - num_items)
 
     # multiremove that raises Exception
-    with pytest.raises(Exception) as error:
-        myDB.multiremove([None]*factor)
+    with pytest.raises(Exception) as _:
+        myDB.multiremove([None]*total)
 
     clean_myDB_resources(myDB)
 
