@@ -5,6 +5,7 @@ import msgpack
 import pickle
 import zlib
 import configparser
+import functools
 import lmdb
 
 
@@ -48,7 +49,7 @@ class ShareDB(object):
     and Python 3.6 and above.
     '''
 
-    __version__ = '1.1.0'
+    __version__ = '1.1.1'
 
     __author__  = 'Ayaan Hossain'
 
@@ -363,6 +364,7 @@ class ShareDB(object):
         '''
         Internal decorator gating ShareDB operations when instance is closed/dropped.
         '''
+        @functools.wraps(method)
         def wrapper(self, *args, **kwargs):
             if self.ALIVE:
                 return method(self, *args, **kwargs)

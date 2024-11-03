@@ -52,7 +52,7 @@ A `ShareDB` instance may be opened simultaneously in children, for reading in pa
 ```python
 >>> from ShareDB import ShareDB           # Easy import
 >>> print(ShareDB.__version__)            # Check version
-1.1.0
+1.1.1
 >>> myDB = ShareDB(path='./test.ShareDB') # Store ShareDB locally
 >>> myDB['Name'] = ['Ayaan Hossain']      # Insert information
 >>> myDB.get(key='Name')                  # Retrieve values
