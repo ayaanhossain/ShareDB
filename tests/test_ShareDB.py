@@ -317,7 +317,7 @@ def get_myDB_resources(total):
         compress=random.choice([True, False]),
         readers=40,
         buffer_size=100,
-        map_size=10**7)
+        map_size=random.choice([None, 10**7]))
 
     # Populate myDB with random items and record keys
     key_val_dict = {}

@@ -48,7 +48,7 @@ class ShareDB(object):
     and Python 3.6 and above.
     '''
 
-    __version__ = '1.0.7'
+    __version__ = '1.1.0'
 
     __author__  = 'Ayaan Hossain'
 
@@ -73,11 +73,12 @@ class ShareDB(object):
                       (default=False)
         readers     - integer, max no. of processes that may read data in
                       parallel
-                      (default=40 processes)
+                      (default=100 processes)
         buffer_size - integer, max no. of commits after which a sync is triggered
                       (default=100,000)
-        map_size    - integer, max amount of bytes to allocate for storage
-                      (default=1TB)
+        map_size    - integer, max amount of bytes to allocate for storage,
+                      if None, then the entire disk is marked for use (safe)
+                      (default=10**12, or 1 TB)
 
         Returns: self to ShareDB object.
 
@@ -174,6 +175,10 @@ class ShareDB(object):
             # Create path if absent
             if not os.path.isdir(path):
                 os.makedirs(path)
+
+            # Determine map_size
+            if map_size is None:
+                map_size, _, __ = shutil.disk_usage(path)
 
             # Create configuration if absent
             if not os.path.exists(path + 'ShareDB.config'):

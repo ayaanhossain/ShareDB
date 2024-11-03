@@ -23,7 +23,7 @@
 | `compress` | `string` | if `True` - will compress the values using `zlib` | `False` |
 | `readers` | `integer` | max no. of processes that may read data in parallel | `100` |
 | `buffer_size` | `integer` | max no. of commits after which a sync is triggered | `100,000` |
-| `map_size` | `integer` | max amount of bytes to allocate for storage | `10**12` (1 TB) |
+| `map_size` | `integer` | max amount of bytes to allocate for storage, if `None`, then the entire disk is marked for use (safe) | `10**12` (1 TB) |
 
 **_Returns_**: `self` to `ShareDB` object.
 

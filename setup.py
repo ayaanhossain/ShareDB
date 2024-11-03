@@ -15,7 +15,7 @@ setup(
     name='ShareDB',
 
     # Link: https://www.python.org/dev/peps/pep-0440/#version-scheme
-    version='1.0.7',
+    version='1.1.0',
 
     description="An on-disk pythonic embedded key-value store for compressed data storage and distributed data analysis.",
 
