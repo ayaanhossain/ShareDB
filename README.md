@@ -52,7 +52,7 @@ A `ShareDB` instance may be opened simultaneously in children, for reading in pa
 ```python
 >>> from ShareDB import ShareDB           # Easy import
 >>> print(ShareDB.__version__)            # Check version
-1.1.1
+1.1.4
 >>> myDB = ShareDB(path='./test.ShareDB') # Store ShareDB locally
 >>> myDB['Name'] = ['Ayaan Hossain']      # Insert information
 >>> myDB.get(key='Name')                  # Retrieve values
@@ -82,30 +82,20 @@ True
 Please see the `/examples/` directory for full examples of `ShareDB` usage.  Please see the [API.md](./docs/API.md) file for API details.
 
 ### Installation
-One-shot **installation/upgrade** of `ShareDB` from **PyPI**
+One-shot **installation/upgrade** of `ShareDB` from **PyPI**.
 ```bash
 $ pip install --upgrade ShareDB
 ```
-Alternatively, **clone** `ShareDB` from **GitHub**
+Alternatively, **clone** `ShareDB` from **GitHub**,
 ```bash
 $ git clone https://github.com/ayaanhossain/ShareDB
 ```
-`ShareDB` requires the following additional libraries
-- [lmdb](https://pypi.org/project/lmdb/) >= 0.98
-- [msgpack](https://pypi.org/project/msgpack/) >= 0.6.2
-- [configparser](https://pypi.org/project/configparser/) >= 4.0.2
-- [pytest-cov](https://pypi.org/project/pytest-cov/) >= 2.8.1
-
-You can **install** all **dependencies** from **requirements.txt** inside `/ShareDB/` directory
+navigate into repo, and install via `pip`.
 ```bash
 $ cd ShareDB
-$ pip install -r requirements.txt
+$ pip install .
 ```
-You can then **install** `ShareDB` via `setup.py`
-```bash
-$ python setup.py install
-```
-You can **test** `ShareDB` with **pytest** inside the `/tests/` directory
+You can **test** `ShareDB` with **pytest** inside the `/tests/` directory.
 ```bash
 $ cd tests
 $ pytest

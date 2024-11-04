@@ -49,7 +49,7 @@ class ShareDB(object):
     and Python 3.6 and above.
     '''
 
-    __version__ = '1.1.2'
+    __version__ = '1.1.4'
 
     __author__  = 'Ayaan Hossain'
 
