@@ -49,7 +49,7 @@ class ShareDB(object):
     and Python 3.6 and above.
     '''
 
-    __version__ = '1.1.1'
+    __version__ = '1.1.2'
 
     __author__  = 'Ayaan Hossain'
 
@@ -87,63 +87,63 @@ class ShareDB(object):
 
         >>> myDB = ShareDB(path=None)
         Traceback (most recent call last):
-        TypeError: Given path=None of <type 'NoneType'>,
-                         reset=False of <type 'bool'>,
-                         serial=msgpack of <type 'str'>,
-                         compress=False of <type 'bool'>,
-                         readers=100 of <type 'int'>,
-                         buffer_size=100000 of <type 'int'>,
-                         map_size=1000000000 of <type 'int'>,
+        TypeError: Given path=None of <class 'NoneType'>,
+                         reset=False of <class 'bool'>,
+                         serial=pickle of <class 'str'>,
+                         compress=False of <class 'bool'>,
+                         readers=100 of <class 'int'>,
+                         buffer_size=100000 of <class 'int'>,
+                         map_size=1000000000000 of <class 'int'>,
                          raised: 'NoneType' object has no attribute 'endswith'
         >>> myDB = ShareDB(path=True)
         Traceback (most recent call last):
-        TypeError: Given path=True of <type 'bool'>,
-                         reset=False of <type 'bool'>,
-                         serial=msgpack of <type 'str'>,
-                         compress=False of <type 'bool'>,
-                         readers=100 of <type 'int'>,
-                         buffer_size=100000 of <type 'int'>,
-                         map_size=1000000000 of <type 'int'>,
+        TypeError: Given path=True of <class 'bool'>,
+                         reset=False of <class 'bool'>,
+                         serial=pickle of <class 'str'>,
+                         compress=False of <class 'bool'>,
+                         readers=100 of <class 'int'>,
+                         buffer_size=100000 of <class 'int'>,
+                         map_size=1000000000000 of <class 'int'>,
                          raised: 'bool' object has no attribute 'endswith'
         >>> myDB = ShareDB(path=123)
         Traceback (most recent call last):
-        TypeError: Given path=123 of <type 'int'>,
-                         reset=False of <type 'bool'>,
-                         serial=msgpack of <type 'str'>,
-                         compress=False of <type 'bool'>,
-                         readers=100 of <type 'int'>,
-                         buffer_size=100000 of <type 'int'>,
-                         map_size=1000000000 of <type 'int'>,
+        TypeError: Given path=123 of <class 'int'>,
+                         reset=False of <class 'bool'>,
+                         serial=pickle of <class 'str'>,
+                         compress=False of <class 'bool'>,
+                         readers=100 of <class 'int'>,
+                         buffer_size=100000 of <class 'int'>,
+                         map_size=1000000000000 of <class 'int'>,
                          raised: 'int' object has no attribute 'endswith'
         >>> myDB = ShareDB(path='/22.f')
         Traceback (most recent call last):
-        TypeError: Given path=/22.f.ShareDB/ of <type 'str'>,
-                         reset=False of <type 'bool'>,
-                         serial=msgpack of <type 'str'>,
-                         compress=False of <type 'bool'>,
-                         readers=100 of <type 'int'>,
-                         buffer_size=100000 of <type 'int'>,
-                         map_size=1000000000 of <type 'int'>,
+        TypeError: Given path=/22.f.ShareDB/ of <class 'str'>,
+                         reset=False of <class 'bool'>,
+                         serial=pickle of <class 'str'>,
+                         compress=False of <class 'bool'>,
+                         readers=100 of <class 'int'>,
+                         buffer_size=100000 of <class 'int'>,
+                         map_size=1000000000000 of <class 'int'>,
                          raised: [Errno 13] Permission denied: '/22.f.ShareDB/'
         >>> myDB = ShareDB(path='./test_init.ShareDB', reset=True, serial='something_fancy')
         Traceback (most recent call last):
-        TypeError: Given path=./test_init.ShareDB/ of <type 'str'>,
-                         reset=True of <type 'bool'>,
-                         serial=something_fancy of <type 'str'>,
-                         compress=False of <type 'bool'>,
-                         readers=100 of <type 'int'>,
-                         buffer_size=100000 of <type 'int'>,
-                         map_size=1000000000 of <type 'int'>,
+        TypeError: Given path=./test_init.ShareDB/ of <class 'str'>,
+                         reset=True of <class 'bool'>,
+                         serial=something_fancy of <class 'str'>,
+                         compress=False of <class 'bool'>,
+                         readers=100 of <class 'int'>,
+                         buffer_size=100000 of <class 'int'>,
+                         map_size=1000000000000 of <class 'int'>,
                          raised: serial must be 'msgpack' or 'pickle' not something_fancy
         >>> myDB = ShareDB(path='./test_init.ShareDB', reset=True, readers='XYZ', buffer_size=100, map_size=10**3)
         Traceback (most recent call last):
-        TypeError: Given path=./test_init.ShareDB/ of <type 'str'>,
-                         reset=True of <type 'bool'>,
-                         serial=msgpack of <type 'str'>,
-                         compress=False of <type 'bool'>,
-                         readers=XYZ of <type 'str'>,
-                         buffer_size=100 of <type 'int'>,
-                         map_size=1000 of <type 'int'>,
+        TypeError: Given path=./test_init.ShareDB/ of <class 'str'>,
+                         reset=True of <class 'bool'>,
+                         serial=pickle of <class 'str'>,
+                         compress=False of <class 'bool'>,
+                         readers=XYZ of <class 'str'>,
+                         buffer_size=100 of <class 'int'>,
+                         map_size=1000 of <class 'int'>,
                          raised: invalid literal for int() with base 10: 'XYZ'
         >>> myDB = ShareDB(path='./test_init.ShareDB', reset=True, readers=40, buffer_size=100, map_size=10**3)
         >>> myDB.PATH
@@ -178,13 +178,14 @@ class ShareDB(object):
                 os.makedirs(path)
 
             # Determine map_size
+            max_space, _, __ = shutil.disk_usage(path)
             if map_size is None:
-                map_size, _, __ = shutil.disk_usage(path)
+                map_size = max_space
 
             # Create configuration if absent
             if not os.path.exists(path + 'ShareDB.config'):
                 config = ShareDB._store_config(
-                    path, serial, compress, readers, buffer_size, map_size)
+                    path, serial, compress, readers, buffer_size, min(map_size, max_space))
             # Otherwise load configuration
             else:
                 config = ShareDB._load_config(path)
@@ -413,16 +414,16 @@ class ShareDB(object):
 
         _get_packed_key test cases.
 
-        >>> myDB = ShareDB(path='./test_get_packed_key', reset=True)
+        >>> myDB = ShareDB(path='./test_get_packed_key', serial='msgpack', reset=True)
         >>> test_key = [1, '2', 3.0, None]
         >>> myDB._get_packed_key(key=test_key) == msgpack.packb(test_key, use_bin_type=True)
         True
         >>> myDB._get_packed_key(key=set(test_key[:1]))
         Traceback (most recent call last):
-        TypeError: Given key=set([1]) of <type 'set'>, raised: can not serialize 'set' object
+        TypeError: Given key={1} of <class 'set'>, raised: can not serialize 'set' object
         >>> myDB._get_packed_key(key=None)
         Traceback (most recent call last):
-        TypeError: ShareDB cannot use <type 'NoneType'> objects as keys
+        TypeError: ShareDB cannot use <class 'NoneType'> objects as keys
         >>> myDB.drop()
         True
         '''
@@ -475,16 +476,16 @@ class ShareDB(object):
 
         _get_packed_val test cases.
 
-        >>> myDB = ShareDB(path='./test_get_packed_val.ShareDB', reset=True)
+        >>> myDB = ShareDB(path='./test_get_packed_val.ShareDB', serial='msgpack', reset=True)
         >>> test_val = {0: [1, '2', 3.0, None]}
         >>> myDB._get_packed_val(val=test_val) == msgpack.packb(test_val, use_bin_type=True)
         True
         >>> myDB._get_packed_val(val=set(test_val[0][:1]))
         Traceback (most recent call last):
-        TypeError: Given value=set([1]) of <type 'set'>, raised: can not serialize 'set' object
+        TypeError: Given value={1} of <class 'set'>, raised: can not serialize 'set' object
         >>> myDB._get_packed_val(val=None)
         Traceback (most recent call last):
-        TypeError: ShareDB cannot use <type 'NoneType'> objects as values
+        TypeError: ShareDB cannot use <class 'NoneType'> objects as values
         >>> myDB.drop()
         True
         '''
@@ -574,12 +575,12 @@ class ShareDB(object):
 
         set test cases.
 
-        >>> myDB = ShareDB(path='./test_set.ShareDB', reset=True)
+        >>> myDB = ShareDB(path='./test_set.ShareDB', serial='msgpack', reset=True)
         >>> myDB.set(key=('NAME'), val='Ayaan Hossain')
         ShareDB instantiated from ./test_set.ShareDB/
         >>> myDB.set(key=['KEY'], val=set(['SOME_VALUE']))
         Traceback (most recent call last):
-        TypeError: Given value=set(['SOME_VALUE']) of <type 'set'>, raised: can not serialize 'set' object
+        TypeError: Given value={'SOME_VALUE'} of <class 'set'>, raised: can not serialize 'set' object
         >>> myDB.set(key=(1, 2, 3, 4), val='SOME_VALUE')
         ShareDB instantiated from ./test_set.ShareDB/
         >>> myDB.set(key='ANOTHER KEY', val=[1, 2, 3, 4])
@@ -603,7 +604,7 @@ class ShareDB(object):
 
         __setitem__ test cases.
 
-        >>> myDB = ShareDB(path='./test_set_dunder.ShareDB', reset=True)
+        >>> myDB = ShareDB(path='./test_set_dunder.ShareDB', serial='msgpack', reset=True)
         >>> myDB['NAME']  = 'Ayaan Hossain'
         >>> myDB[['KEY']] = 'SOME_VALUE'
         >>> myDB['KEY'] = 'SOME_VALUE'
@@ -612,7 +613,7 @@ class ShareDB(object):
         True
         >>> myDB[set(['KEY'])] = 'SOME_VALUE'
         Traceback (most recent call last):
-        TypeError: Given key=set(['KEY']) of <type 'set'>, raised: can not serialize 'set' object
+        TypeError: Given key={'KEY'} of <class 'set'>, raised: can not serialize 'set' object
         >>> myDB.drop()
         True
         '''
@@ -630,19 +631,21 @@ class ShareDB(object):
 
         multiset test cases.
 
-        >>> myDB = ShareDB(path='./test_multi_set.ShareDB', reset=True)
-        >>> kv_generator = ((tuple(range(i, i+5)), range(i+5, i+10)) for i in range(10))
+        >>> myDB = ShareDB(path='./test_multi_set.ShareDB', serial = 'msgpack', reset=True)
+        >>> kv_generator = ((tuple(range(i, i+5)), tuple(range(i+5, i+10))) for i in range(10))
         >>> myDB.multiset(kv_iter=kv_generator).sync().length()
         10
+        >>> myDB.close()
+        True
         >>> myDB = ShareDB(path='./test_multi_set.ShareDB', reset=False)
         >>> len(myDB)
         10
-        >>> kv_generator = ((tuple(range(i, i+5)), range(i+5, i+10)) for i in range(3000, 3005))
+        >>> kv_generator = ((tuple(range(i, i+5)), tuple(range(i+5, i+10))) for i in range(3000, 3005))
         >>> myDB.multiset(kv_iter=kv_generator)
         ShareDB instantiated from ./test_multi_set.ShareDB/
         >>> len(myDB)
         15
-        >>> for i in range(3005, 3010): myDB[tuple(range(i, i+5))] = range(i+5, i+10)
+        >>> for i in range(3005, 3010): myDB[tuple(range(i, i+5))] = tuple(range(i+5, i+10))
         >>> len(myDB)
         20
         >>> myDB.close()
@@ -650,14 +653,14 @@ class ShareDB(object):
         >>> myDB = ShareDB(path='./test_multi_set.ShareDB', reset=False)
         >>> len(myDB)
         20
-        >>> myDB[tuple(range(3005, 3010))] == range(3010, 3015)
+        >>> myDB[tuple(range(3005, 3010))] == list(range(3010, 3015))
         True
         >>> myDB[tuple(range(1))] = set(range(1))
         Traceback (most recent call last):
-        TypeError: Given value=set([0]) of <type 'set'>, raised: can not serialize 'set' object
+        TypeError: Given value={0} of <class 'set'>, raised: can not serialize 'set' object
         >>> myDB[set(range(1))] = range(1)
         Traceback (most recent call last):
-        TypeError: Given key=set([0]) of <type 'set'>, raised: can not serialize 'set' object
+        TypeError: Given key={0} of <class 'set'>, raised: can not serialize 'set' object
         >>> myDB.drop()
         True
         '''
@@ -724,6 +727,8 @@ class ShareDB(object):
         >>> for i in range(100): myDB[i] = i**0.5
         >>> len(myDB)
         100
+        >>> myDB.close()
+        True
         >>> myDB = ShareDB(path='./test_get_dunder.ShareDB', reset=False)
         >>> for i in range(100): assert myDB.get(i) == i**0.5
         >>> myDB.get(key=81)
@@ -764,10 +769,10 @@ class ShareDB(object):
         7.0
         >>> myDB[49.0]
         Traceback (most recent call last):
-        KeyError: "key=49.0 of <type 'float'> is absent"
+        KeyError: "key=49.0 of <class 'float'> is absent"
         >>> myDB[set([49.0])]
         Traceback (most recent call last):
-        TypeError: Given key=set([49.0]) of <type 'set'>, raised: can not serialize 'set' object
+        KeyError: "key={49.0} of <class 'set'> is absent"
         >>> myDB.drop()
         True
         '''
@@ -800,11 +805,11 @@ class ShareDB(object):
         >>> myDB = ShareDB(path='./test_multiget.ShareDB', reset=False)
         >>> len(list(myDB.multiget(key_iter=range(100), default=None))) == 100
         True
-        >>> myDB.multiget(key_iter=range(100, 110), default=False).next()
+        >>> next(myDB.multiget(key_iter=range(100, 110), default=False))
         False
-        >>> myDB.multiget(key_iter=[None]).next()
+        >>> next(myDB.multiget(key_iter=[None]))
         Traceback (most recent call last):
-        Exception: Given key_iter=[None] of <type 'list'>, raised: ShareDB cannot use <type 'NoneType'> objects as keys
+        Exception: Given key_iter=[None] of <class 'list'>, raised: ShareDB cannot use <class 'NoneType'> objects as keys
         >>> myDB.drop()
         True
         '''
@@ -1130,7 +1135,7 @@ class ShareDB(object):
         99
         >>> myDB.pop(49)
         Traceback (most recent call last):
-        KeyError: "key=49 of <type 'int'> is absent"
+        KeyError: "key=49 of <class 'int'> is absent"
         >>> myDB.drop()
         True
         '''
@@ -1159,16 +1164,16 @@ class ShareDB(object):
         True
         >>> myDB = ShareDB(path='./test_multipop', reset=False)
         >>> pop_iter = myDB.multipop(range(49, 74))
-        >>> pop_iter.next()
+        >>> next(pop_iter)
         [7.0]
         >>> len(list(pop_iter))
         24
         >>> len(myDB)
         75
         >>> pop_iter = myDB.multipop([199, 200])
-        >>> pop_iter.next()
+        >>> next(pop_iter)
         Traceback (most recent call last):
-        Exception: Given key_iter=[199, 200] of <type 'list'>, raised: "key=199 of <type 'int'> is absent"
+        Exception: Given key_iter=[199, 200] of <class 'list'>, raised: "key=199 of <class 'int'> is absent"
         >>> myDB.drop()
         True
         '''
@@ -1386,7 +1391,7 @@ class ShareDB(object):
         >>> myDB = ShareDB(path='./test_multpopitem', reset=False)
         >>> len(list(myDB.multipopitem(num_items='THIS IS NOT A NUMBER')))
         Traceback (most recent call last):
-        TypeError: num_items=THIS IS NOT A NUMBER of <type 'str'> must be an integer/long/float
+        TypeError: num_items=THIS IS NOT A NUMBER of <class 'str'> must be an integer/long/float
         >>> len(list(myDB.multipopitem(num_items=len(myDB)*1.0)))
         10
         >>> 1 in myDB
