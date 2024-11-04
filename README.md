@@ -100,7 +100,7 @@ You can **test** `ShareDB` with **pytest** inside the `/tests/` directory.
 $ cd tests
 $ pytest
 ```
-**Uninstallation** of `ShareDB` is easy with `pip`
+**Uninstallation** of `ShareDB` is easy with `pip`.
 ```bash
 $ pip uninstall ShareDB
 ```
