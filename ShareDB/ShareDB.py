@@ -45,8 +45,7 @@ class ShareDB(object):
     A ShareDB instance may be opened simultaneously in children, for reading in parallel,
     while a single parent writes to the instance. Parallel writes made across processes
     are not safe; they are not guaranteed to be written, and may corrupt instance. ShareDB
-    is primarily developed and tested using Linux and is compatible with both Python 2.7
-    and Python 3.6 and above.
+    is primarily developed and tested using Linux and requires Python 3.8 or above.
     """
 
     __version__ = "2.0.0"
