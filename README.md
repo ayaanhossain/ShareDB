@@ -52,7 +52,7 @@ A `ShareDB` instance may be opened simultaneously in children, for reading in pa
 ```python
 >>> from ShareDB import ShareDB           # Easy import
 >>> print(ShareDB.__version__)            # Check version
-1.1.4
+2.0.0
 >>> myDB = ShareDB(path='./test.ShareDB') # Store ShareDB locally
 >>> myDB['Name'] = ['Ayaan Hossain']      # Insert information
 >>> myDB.get(key='Name')                  # Retrieve values
@@ -68,16 +68,27 @@ Traceback (most recent call last):
 KeyError: "key=non-existent key of <class 'str'> is absent"
 >>> myDB.pop(7)                           # Pop a key just like a dictionary
 17
+>>> myDB.pop(99, 'missing')               # Pop with a default for absent keys
+'missing'
+>>> myDB.update({'x': 100, 'y': 200})    # Update from a dict or iterable of pairs
+ShareDB instantiated from ./test.ShareDB/
+>>> myDB.setdefault('x', 999)             # Return existing value, or insert default
+100
 >>> list(myDB.multipopitem(num_items=5))  # Or, pop as many items as you need
 [(0, 10), (1, 11), (2, 12), (3, 13), (4, 14)]
 >>> myDB.remove(5).remove(6).length()     # Chain removal of several keys
-2
+5
 >>> myDB.clear().length()                 # Or, clear entire ShareDB
 0
 >>> myDB.drop()                           # Close/delete when you're done
 True
 ```
 `ShareDB` methods either return data/result up on appropriate query, or a `self` is returned to facilitate method chaining. Terminal methods `.close()` and `.drop()` return a boolean indicating success.
+
+### Notes
+
+- `None` is not a valid key or value in `ShareDB`.
+- When using `serial='msgpack'`, tuples are deserialized as lists (msgpack does not distinguish between tuple and list).
 
 Please see the `/examples/` directory for full examples of `ShareDB` usage.  Please see the [API.md](./docs/API.md) file for API details.
 
@@ -106,7 +117,7 @@ $ pip uninstall ShareDB
 ```
 
 ### License
-`ShareDB` (c) 2019-2024 Ayaan Hossain.
+`ShareDB` (c) 2019-2026 Ayaan Hossain.
 
 `ShareDB` is an **open-source software** under [MIT](https://opensource.org/licenses/MIT) License.
 

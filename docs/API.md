@@ -11,7 +11,7 @@
 
 ### `ShareDB` API Documentation
 ---
-**\_\_init__(self, path, reset=False, serial='msgpack', compress=False, readers=100, buffer_size=10\*\*5, map_size=10\*\*9)**
+**\_\_init__(self, path, reset=False, serial='pickle', compress=False, readers=256, buffer_size=10\*\*5, map_size=None)**
 
 `ShareDB` **constructor**.
 
@@ -21,9 +21,9 @@
 | `reset` | `boolean` | if `True` - delete and recreate path following subsequent parameters | `False` |
 | `serial` | `string` | must be either `'msgpack'` or `'pickle'` | `'pickle'` |
 | `compress` | `string` | if `True` - will compress the values using `zlib` | `False` |
-| `readers` | `integer` | max no. of processes that may read data in parallel | `100` |
+| `readers` | `integer` | max no. of processes that may read data in parallel | `256` |
 | `buffer_size` | `integer` | max no. of commits after which a sync is triggered | `100,000` |
-| `map_size` | `integer` | max amount of bytes to allocate for storage, if `None`, then the entire disk is marked for use (safe) | `10**12` (1 TB) |
+| `map_size` | `integer` or `None` | max amount of bytes to allocate for storage; `None` uses all available disk space | `None` |
 
 **_Returns_**: `self` to `ShareDB` object.
 
@@ -35,7 +35,7 @@
 	readers=10,
 	buffer_size=100,
 	map_size=10**5)
->>> myDB.ALIVE
+>>> myDB.is_alive
 True
 ```
 ---
@@ -103,6 +103,25 @@ User function to **insert/update multiple** `(key, value)` pairs in to `ShareDB`
 ShareDB instantiated from ./test.ShareDB/
 ```
 ---
+**update(self, other)**
+
+User function to **insert/update** `ShareDB` instance from a **mapping** or **iterable of `(key, value)` pairs**.
+
+| argument | type | description | default |
+|--|--|--|--|
+| `other` | `mapping` or `iterable` | mapping or iterable of `(key, value)` pairs | -- |
+
+**_Returns_**: `self` to `ShareDB` object.
+
+```python
+>>> myDB.update({'a': 1, 'b': 2})
+ShareDB instantiated from ./test.ShareDB/
+>>> myDB.update((('c', 3), ('d', 4)))
+ShareDB instantiated from ./test.ShareDB/
+>>> myDB['a']
+1
+```
+---
 **get(self, key, default=None)**
 
 User function to **query** `value` of a **single** `key` in `ShareDB` instance.
@@ -123,13 +142,31 @@ User function to **query** `value` of a **single** `key` in `ShareDB` instance.
 'KEYABSENT'
 ```
 ---
-**\_\_getitem__(self, key, val)**
+**setdefault(self, key, default)**
+
+User function to **atomically** return the `value` for `key` if it exists, otherwise **insert** `key` with `default` and return `default`. The check and insert happen in a single transaction.
+
+| argument | type | description | default |
+|--|--|--|--|
+| `key` | `object` | a valid key to query or insert | -- |
+| `default` | `object` | value to insert and return if key is absent | -- |
+
+**_Returns_**: Existing `value` for `key` if present, otherwise `default`.
+
+```python
+>>> myDB.setdefault('x', 42)
+42
+>>> myDB.setdefault('x', 99)
+42
+```
+---
+**\_\_getitem__(self, key)**
 
 Pythonic dunder function to **query** `value` of a **single** `key` in `ShareDB` instance.
 
 | argument | type | description | default |
 |--|--|--|--|
-| `key` | `object` | a valid key to be inserted/updated in ShareDB | -- |
+| `key` | `object` | a valid key to query for associated value | -- |
 
 **_Returns_**: Unpacked `value` corresponding to `key`, otherwise `KeyError`.
 
@@ -263,15 +300,16 @@ User function to **remove mutiple** `keys` from `ShareDB` instance via a single 
 False
 ```
 ---
-**pop(self, key)**
+**pop(self, key, default=\<absent\>)**
 
 User function to **pop** a **single** `key` from `ShareDB` instance and return its `value`.
 
 | argument | type | description | default |
 |--|--|--|--|
 | `key` | `object` | a valid key to be popped | -- |
+| `default` | `object` | value to return when key is absent; if not provided, `KeyError` is raised | `<absent>` |
 
-**_Returns_** - Unpacked `value` corresponding to `key`, otherwise `KeyError`.
+**_Returns_** - Unpacked `value` corresponding to `key`, otherwise `default` (or `KeyError` if `default` not provided).
 
 ```python
 >>> myDB.pop(3)
@@ -280,6 +318,8 @@ User function to **pop** a **single** `key` from `ShareDB` instance and return i
 Traceback (most recent call last):
 ...
 KeyError: "key=3 of <class 'int'> is absent"
+>>> myDB.pop(3, 'missing')
+'missing'
 ```
 ---
 **multipop(self, key_iter)**
@@ -404,13 +444,13 @@ User function to **save and close** `ShareDB` instance.
 **_Returns_**: `True` if closed, otherwise `False`.
 
 ```python
->>> myDB.ALIVE
+>>> myDB.is_alive
 True
 >>> myDB.close()
 True
 >>> myDB.close()
 False
->>> myDB.ALIVE
+>>> myDB.is_alive
 False
 >>> myDB.set(key='key', val=['value'])
 RuntimeError: Access to ShareDB instantiated from ./test.ShareDB/ has been closed or dropped
@@ -423,12 +463,12 @@ User function to **delete** `ShareDB` instance.
 **_Returns_**: `True` if dropped, otherwise `False`.
 
 ```python
->>> myDB = ShareDB(path=myDB.PATH)
->>> myDB.ALIVE
+>>> myDB = ShareDB(path=myDB.path)
+>>> myDB.is_alive
 True
 >>> myDB.drop()
 True
->>> myDB.ALIVE
+>>> myDB.is_alive
 False
 >>> myDB.set(key='key', val=['value'])
 RuntimeError: Access to ShareDB instantiated from ./test.ShareDB/ has been closed or dropped

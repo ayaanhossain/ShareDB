@@ -6,183 +6,191 @@ import pytest
 
 
 def test_ShareDB_init_param_fails():
-    '''
+    """
     Test Exceptions to be raised on bad instantiation.
-    '''
-    with pytest.raises(TypeError) as error:
+    """
+    with pytest.raises(TypeError):
         myDB = ShareDB()
         myDB.drop()
-    with pytest.raises(TypeError) as error:
+    with pytest.raises(TypeError):
         myDB = ShareDB(path=True)
         myDB.drop()
-    with pytest.raises(TypeError) as error:
+    with pytest.raises(TypeError):
         myDB = ShareDB(path=123)
         myDB.drop()
-    with pytest.raises(TypeError) as error:
+    with pytest.raises(TypeError):
+        myDB = ShareDB(path="./test_init.ShareDB", reset=True, serial="something_fancy")
+    with pytest.raises(TypeError):
         myDB = ShareDB(
-            path='./test_init.ShareDB',
+            path="./test_init.ShareDB",
             reset=True,
-            serial='something_fancy')
-    with pytest.raises(TypeError) as error:
+            serial="pickle",
+            compress="AbsoluteTruth",
+        )
+    with pytest.raises(TypeError):
         myDB = ShareDB(
-            path='./test_init.ShareDB',
+            path="./test_init.ShareDB",
             reset=True,
-            serial='pickle',
-            compress='AbsoluteTruth')
-    with pytest.raises(TypeError) as error:
-        myDB = ShareDB(
-            path='./test_init.ShareDB',
-            reset=True,
-            readers='XYZ',
+            readers="XYZ",
             buffer_size=100,
-            map_size=10**3)
-    with pytest.raises(TypeError) as error:
+            map_size=10**3,
+        )
+    with pytest.raises(TypeError):
         myDB = ShareDB(
-            path='./test_init.ShareDB',
+            path="./test_init.ShareDB",
             reset=True,
-            readers='XYZ',
+            readers="XYZ",
             buffer_size=100,
-            map_size=0)
-    myDB = ShareDB(path='./test_init.ShareDB', reset=True)
+            map_size=0,
+        )
+    myDB = ShareDB(path="./test_init.ShareDB", reset=True)
     myDB.drop()
 
+
 def test_ShareDB_path():
-    '''
+    """
     Test Exceptions and success when path is occupied by file.
-    '''
+    """
     # Setup ShareDB init fail via file occupancy
-    path = './test_init.ShareDB'
-    with open(path, 'w') as outfile:
+    path = "./test_init.ShareDB"
+    with open(path, "w"):
         pass
 
     # Raises TypeError because path points to a file
-    with pytest.raises(TypeError) as error:
+    with pytest.raises(TypeError):
         myDB = ShareDB(path=path)
 
     # Automatically remove file when reset is True
     myDB = ShareDB(path=path, reset=True)
     myDB.drop()
 
+
 def test_close_drop():
-    '''
+    """
     Test close and drop.
-    '''
+    """
     # Successful close
-    myDB = ShareDB(path='./test_close_drop')
-    assert myDB.close() == True
-    assert myDB.close() == False
+    myDB = ShareDB(path="./test_close_drop")
+    assert myDB.close()
+    assert not myDB.close()
 
     # Once closed transaction raises RuntimeError
-    with pytest.raises(RuntimeError) as error:
+    with pytest.raises(RuntimeError):
         myDB[1] = 2
 
     # Successful drop
-    myDB = ShareDB(path='./test_close_drop', reset=True)
-    assert myDB.drop()  == True
-    assert myDB.drop()  == False
+    myDB = ShareDB(path="./test_close_drop", reset=True)
+    assert myDB.drop()
+    assert not myDB.drop()
 
     # Once dropped transaction raises RuntimeError
-    with pytest.raises(RuntimeError) as error:
+    with pytest.raises(RuntimeError):
         myDB[1] = 2
+
 
 @pytest.fixture
 def msgpack_myDB():
-    '''
+    """
     Initialize a ShareDB with msgpack serialization.
-    '''
-    msgpack_myDB = ShareDB(path='./myDB.msgpack',
+    """
+    msgpack_myDB = ShareDB(
+        path="./myDB.msgpack",
         reset=True,
-        serial='msgpack',
+        serial="msgpack",
         compress=True,
         readers=40,
         buffer_size=100,
-        map_size=10**7)
+        map_size=10**7,
+    )
     msgpack_myDB = None
-    msgpack_myDB = ShareDB(path='./myDB.msgpack',
-        reset=False)
+    msgpack_myDB = ShareDB(path="./myDB.msgpack", reset=False)
     yield msgpack_myDB
     msgpack_myDB.drop()
 
+
 @pytest.fixture
 def pickle_myDB():
-    '''
+    """
     Initialize a ShareDB with pickle serialization.
-    '''
-    pickle_myDB = ShareDB(path='./myDB.pickle',
+    """
+    pickle_myDB = ShareDB(
+        path="./myDB.pickle",
         reset=True,
-        serial='pickle',
+        serial="pickle",
         compress=True,
         readers=40,
         buffer_size=100,
-        map_size=10**7)
+        map_size=10**7,
+    )
     pickle_myDB = None
-    pickle_myDB = ShareDB(path='./myDB.pickle',
-        reset=False)
+    pickle_myDB = ShareDB(path="./myDB.pickle", reset=False)
     yield pickle_myDB
     pickle_myDB.drop()
 
+
 def test_ShareDB_init_success(msgpack_myDB, pickle_myDB):
-    '''
+    """
     Test instance variables on successful instantiation.
-    '''
-    assert msgpack_myDB.PATH     == './myDB.msgpack.ShareDB/'
-    assert pickle_myDB.PATH      == './myDB.pickle.ShareDB/'
-    assert msgpack_myDB.ALIVE    == pickle_myDB.ALIVE    == True
-    assert msgpack_myDB.SERIAL   == 'msgpack'
-    assert pickle_myDB.SERIAL    == 'pickle'
-    assert msgpack_myDB.COMPRESS == pickle_myDB.COMPRESS == True
-    assert msgpack_myDB.READERS  == pickle_myDB.READERS  == 40
-    assert msgpack_myDB.BCSIZE   == pickle_myDB.BCSIZE   == 100
-    assert msgpack_myDB.BQSIZE   == pickle_myDB.BQSIZE   == 0
-    assert msgpack_myDB.MSLIMIT  == pickle_myDB.MSLIMIT  == 10000000
-    assert repr(msgpack_myDB)    == 'ShareDB instantiated from ./myDB.msgpack.ShareDB/'
-    assert str(pickle_myDB)      == 'ShareDB instantiated from ./myDB.pickle.ShareDB/'
+    """
+    assert msgpack_myDB.path == "./myDB.msgpack.ShareDB/"
+    assert pickle_myDB.path == "./myDB.pickle.ShareDB/"
+    assert msgpack_myDB.is_alive and pickle_myDB.is_alive
+    assert msgpack_myDB.serial == "msgpack"
+    assert pickle_myDB.serial == "pickle"
+    assert msgpack_myDB.compress and pickle_myDB.compress
+    assert msgpack_myDB.max_readers == pickle_myDB.max_readers == 40
+    assert msgpack_myDB.sync_threshold == pickle_myDB.sync_threshold == 100
+    assert msgpack_myDB.pending_writes == pickle_myDB.pending_writes == 0
+    assert msgpack_myDB.max_map_size == pickle_myDB.max_map_size == 10000000
+    assert repr(msgpack_myDB) == "ShareDB instantiated from ./myDB.msgpack.ShareDB/"
+    assert str(pickle_myDB) == "ShareDB instantiated from ./myDB.pickle.ShareDB/"
+
 
 def test_basic_set_and_get(msgpack_myDB, pickle_myDB):
-    '''
+    """
     Test basic set/__setitem__, get/__getitem__ and related Exceptions.
-    '''
+    """
     # Successful known sets
-    msgpack_myDB.set(key='Name', val='Ayaan Hossain').\
-                 set(key=(1, 2, 3, 4), val=['SOME', 'VALUES', 'HERE'])
-    pickle_myDB['Name']       = 'Ayaan Hossain'
-    pickle_myDB[(1, 2, 3, 4)] = ['SOME', 'VALUES', 'HERE']
-    pickle_myDB[set(['pickle', 'can', 'store', 'sets'])] = True
+    msgpack_myDB.set(key="Name", val="Ayaan Hossain").set(
+        key=(1, 2, 3, 4), val=["SOME", "VALUES", "HERE"]
+    )
+    pickle_myDB["Name"] = "Ayaan Hossain"
+    pickle_myDB[(1, 2, 3, 4)] = ["SOME", "VALUES", "HERE"]
+    pickle_myDB[set(["pickle", "can", "store", "sets"])] = True
 
     # sets that raise Exception
-    with pytest.raises(TypeError) as error:
-        msgpack_myDB.set(
-            key=set(['msgpack', 'can', 'store', 'sets']),
-            val=False)
-    with pytest.raises(TypeError) as error:
-        msgpack_myDB.set('None cannot be values', None)
-    with pytest.raises(TypeError) as error:
-        msgpack_myDB.set(None, 'None cannot be keys')
-    with pytest.raises(TypeError) as error:
-        pickle_myDB.set('None cannot be values', None)
-    with pytest.raises(TypeError) as error:
-        pickle_myDB.set(None, 'None cannot be keys')
+    with pytest.raises(TypeError):
+        msgpack_myDB.set(key=set(["msgpack", "can", "store", "sets"]), val=False)
+    with pytest.raises(TypeError):
+        msgpack_myDB.set("None cannot be values", None)
+    with pytest.raises(TypeError):
+        msgpack_myDB.set(None, "None cannot be keys")
+    with pytest.raises(TypeError):
+        pickle_myDB.set("None cannot be values", None)
+    with pytest.raises(TypeError):
+        pickle_myDB.set(None, "None cannot be keys")
 
     # Successful gets
-    assert msgpack_myDB.get('non-existent key') is None
-    assert msgpack_myDB['Name']          == 'Ayaan Hossain'
-    assert msgpack_myDB[(1, 2, 3, 4)]    == ['SOME', 'VALUES', 'HERE']
-    assert pickle_myDB.get('Name')       == 'Ayaan Hossain'
-    assert pickle_myDB.get((1, 2, 3, 4)) == ['SOME', 'VALUES', 'HERE']
-    assert pickle_myDB[set(['pickle', 'can', 'store', 'sets'])] == True
+    assert msgpack_myDB.get("non-existent key") is None
+    assert msgpack_myDB["Name"] == "Ayaan Hossain"
+    assert msgpack_myDB[(1, 2, 3, 4)] == ["SOME", "VALUES", "HERE"]
+    assert pickle_myDB.get("Name") == "Ayaan Hossain"
+    assert pickle_myDB.get((1, 2, 3, 4)) == ["SOME", "VALUES", "HERE"]
+    assert pickle_myDB[set(["pickle", "can", "store", "sets"])]
 
     # gets that raise Exception
-    with pytest.raises(KeyError) as error:
-        msgpack_myDB['non-existent key']
-    with pytest.raises(TypeError) as error:
+    with pytest.raises(KeyError):
+        msgpack_myDB["non-existent key"]
+    with pytest.raises(TypeError):
         msgpack_myDB.get(key=None)
-    with pytest.raises(TypeError) as error:
+    with pytest.raises(TypeError):
         pickle_myDB[None]
 
+
 def gri(seed):
-    '''
+    """
     Helper generator to stream random items.
-    '''
+    """
     random.seed(seed)
     chars = list(string.ascii_lowercase)
     while True:
@@ -190,23 +198,24 @@ def gri(seed):
         if choice <= 5:
             # A random string is generated
             length = random.randint(5, 10)
-            val = ''.join(random.choice(chars) for _ in range(length))
+            val = "".join(random.choice(chars) for _ in range(length))
         else:
             # A random number is generated
-            val = float('{:.6f}'.format(random.random()))
+            val = float("{:.6f}".format(random.random()))
         if choice <= 5:
             # tuple result
-            result = (val)
+            result = val
         else:
             # unpacked result
             result = val
         yield result
 
-@pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
+
+@pytest.mark.parametrize("total", [random.randint(10**3, 10**4) for _ in range(5)])
 def test_random_set_and_get(msgpack_myDB, pickle_myDB, total):
-    '''
+    """
     Test random set/__setitem__, get/__getitem__.
-    '''
+    """
     # Setup random
     seed = random.random()
     gri_stream = gri(seed=seed)
@@ -218,19 +227,20 @@ def test_random_set_and_get(msgpack_myDB, pickle_myDB, total):
         val = next(gri_stream)
         if key not in verification:
             msgpack_myDB.set(key=key, val=val)
-            pickle_myDB[key]  = val
+            pickle_myDB[key] = val
             verification[key] = val
 
     # Successful random gets
     for key in verification:
-        assert msgpack_myDB[key]        == verification[key]
+        assert msgpack_myDB[key] == verification[key]
         assert pickle_myDB.get(key=key) == verification[key]
 
-@pytest.mark.parametrize('total', [random.randint(10**2, 10**3)*10 for _ in range(5)])
+
+@pytest.mark.parametrize("total", [random.randint(10**2, 10**3) * 10 for _ in range(5)])
 def test_random_multiset_and_multiget(msgpack_myDB, pickle_myDB, total):
-    '''
+    """
     Test random multiset and multiget and related Exceptions.
-    '''
+    """
     # Setup random
     seed = random.random()
     gri_stream = gri(seed=seed)
@@ -239,58 +249,75 @@ def test_random_multiset_and_multiget(msgpack_myDB, pickle_myDB, total):
     factor = total // 10
 
     # Successful random multisets
-    msgpack_myDB.multiset(kv_iter=(
-        ((i, [next(gri_stream), next(gri_stream), next(gri_stream)]) \
-            for i in range(total))))
-    pickle_myDB.multiset(kv_iter=(
-        ((i, set([next(gri_stream), next(gri_stream), next(gri_stream)])) \
-            for i in range(total))))
+    msgpack_myDB.multiset(
+        kv_iter=(
+            (
+                (i, [next(gri_stream), next(gri_stream), next(gri_stream)])
+                for i in range(total)
+            )
+        )
+    )
+    pickle_myDB.multiset(
+        kv_iter=(
+            (
+                (i, set([next(gri_stream), next(gri_stream), next(gri_stream)]))
+                for i in range(total)
+            )
+        )
+    )
 
     # multisets that raise Exception
-    with pytest.raises(Exception) as error:
-        msgpack_myDB.multiset(kv_iter=(
-            ((i, set([next(gri_stream), next(gri_stream), next(gri_stream)])) \
-                for i in range(total))))
-    with pytest.raises(Exception) as error:
-        pickle_myDB.multiset(kv_iter=(
-            ((i, None) for i in range(total))))
+    with pytest.raises(Exception):
+        msgpack_myDB.multiset(
+            kv_iter=(
+                (
+                    (i, set([next(gri_stream), next(gri_stream), next(gri_stream)]))
+                    for i in range(total)
+                )
+            )
+        )
+    with pytest.raises(Exception):
+        pickle_myDB.multiset(kv_iter=(((i, None) for i in range(total))))
 
     # Reset random
     gri_stream = gri(seed=seed)
 
     # Successful random multigets
     for i in range(0, total, factor):
-        get_vals = list(msgpack_myDB.multiget(key_iter=list(range(i, i+factor))))
-        gen_vals = []
-        for idx,j in enumerate(range(i, i+factor)):
+        get_vals = list(msgpack_myDB.multiget(key_iter=list(range(i, i + factor))))
+        for idx, j in enumerate(range(i, i + factor)):
             gen_val = [next(gri_stream), next(gri_stream), next(gri_stream)]
             assert get_vals[idx] == gen_val
 
     # multigets that raise Exception
-    with pytest.raises(Exception) as error:
+    with pytest.raises(Exception):
         next(msgpack_myDB.multiget(key_iter=[None for _ in range(total)]))
-    with pytest.raises(Exception) as error:
+    with pytest.raises(Exception):
         next(pickle_myDB.multiget(key_iter=(None for _ in range(total))))
 
+
 def get_tinyDB(map_size):
-    '''
+    """
     Initialize a ShareDB with msgpack serialization.
-    '''
-    myDB = ShareDB(path='./tinyDB',
+    """
+    myDB = ShareDB(
+        path="./tinyDB",
         reset=True,
-        serial='msgpack',
+        serial="msgpack",
         readers=40,
         buffer_size=100,
-        map_size=map_size)
+        map_size=map_size,
+    )
     return myDB
 
-@pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
+
+@pytest.mark.parametrize("total", [random.randint(10**3, 10**4) for _ in range(5)])
 def test_random_memory_fail(total):
-    '''
+    """
     Test random MemoryError when ShareDB is imporperly instantiated.
-    '''
+    """
     # Setup DB and random
-    myDB = get_tinyDB(map_size=total//100)
+    myDB = get_tinyDB(map_size=total // 100)
     seed = random.random()
     gri_stream = gri(seed=seed)
 
@@ -302,22 +329,25 @@ def test_random_memory_fail(total):
     # Clear myDB
     myDB.drop()
 
+
 def get_myDB_resources(total):
-    '''
+    """
     Initialize a populated ShareDB instance and associated resources.
-    '''
+    """
     # Setup random
     seed = random.random()
     gri_stream = gri(seed=seed)
 
     # Initialize ShareDB instance
-    myDB = ShareDB(path='./myDB',
+    myDB = ShareDB(
+        path="./myDB",
         reset=True,
-        serial=random.choice(['msgpack', 'pickle']),
+        serial=random.choice(["msgpack", "pickle"]),
         compress=random.choice([True, False]),
         readers=40,
         buffer_size=100,
-        map_size=random.choice([None, 10**7]))
+        map_size=random.choice([None, 10**7]),
+    )
 
     # Populate myDB with random items and record keys
     key_val_dict = {}
@@ -338,15 +368,17 @@ def get_myDB_resources(total):
     # Return resources
     return myDB, key_val_dict, non_key_set
 
+
 def clean_myDB_resources(myDB):
-    '''Drop DB.'''
+    """Drop DB."""
     myDB.drop()
 
-@pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
+
+@pytest.mark.parametrize("total", [random.randint(10**3, 10**4) for _ in range(5)])
 def test_random_contains_has_multikey(total):
-    '''
+    """
     Test random has_key/__contains__/has_multikey.
-    '''
+    """
     # Buid and unpack myDB and other resources
     myDB, key_val_dict, non_key_set = get_myDB_resources(total)
 
@@ -354,21 +386,22 @@ def test_random_contains_has_multikey(total):
     for key in key_val_dict:
         assert key in myDB
     for non_key in non_key_set:
-        assert myDB.has_key(non_key) == False
+        assert not myDB.has_key(non_key)
 
     # Successful random has_multikey
-    assert all(myDB.has_multikey(key_val_dict.keys())) == True
-    assert not all(myDB.has_multikey(non_key_set))   == True
+    assert all(myDB.has_multikey(key_val_dict.keys()))
+    assert not all(myDB.has_multikey(non_key_set))
 
     # Clear resources
     clean_myDB_resources(myDB)
 
-@pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
+
+@pytest.mark.parametrize("total", [random.randint(10**3, 10**4) for _ in range(5)])
 def test_random_lengths(total):
-    '''
+    """
     Test random length/__len__.
-    '''
-    db_length = random.randint(total//10, total*10)
+    """
+    db_length = random.randint(total // 10, total * 10)
 
     # Successful random length
     myDB, _, __ = get_myDB_resources(db_length)
@@ -376,11 +409,12 @@ def test_random_lengths(total):
 
     clean_myDB_resources(myDB)
 
-@pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
+
+@pytest.mark.parametrize("total", [random.randint(10**3, 10**4) for _ in range(5)])
 def test_random_remove(total):
-    '''
+    """
     Test random remove and related Exception.
-    '''
+    """
     myDB, key_val_dict, non_key_set = get_myDB_resources(total)
 
     # Successful random remove
@@ -396,16 +430,17 @@ def test_random_remove(total):
 
     clean_myDB_resources(myDB)
 
-@pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
+
+@pytest.mark.parametrize("total", [random.randint(10**3, 10**4) for _ in range(5)])
 def test_random_multiremove(total):
-    '''
+    """
     Test random multiremove and related Exception.
-    '''
+    """
     myDB, key_val_dict, non_key_set = get_myDB_resources(total)
 
     # Successful random multiremove
     while len(myDB):
-        factor   = random.randint(0, len(myDB))
+        factor = random.randint(0, len(myDB))
         prev_len = len(myDB)
         myDB.multiremove(key_iter=(key_val_dict.popitem()[0] for _ in range(factor)))
         assert len(myDB) == prev_len - factor
@@ -413,15 +448,16 @@ def test_random_multiremove(total):
 
     # multiremove that raises Exception
     with pytest.raises(Exception) as _:
-        myDB.multiremove([None]*factor)
+        myDB.multiremove([None] * factor)
 
     clean_myDB_resources(myDB)
 
-@pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
+
+@pytest.mark.parametrize("total", [random.randint(10**3, 10**4) for _ in range(5)])
 def test_random_pop(total):
-    '''
+    """
     Test random pop and related Exceptions.
-    '''
+    """
     myDB, key_val_dict, non_key_set = get_myDB_resources(total)
 
     # Successful random pop
@@ -440,16 +476,17 @@ def test_random_pop(total):
 
     clean_myDB_resources(myDB)
 
-@pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
+
+@pytest.mark.parametrize("total", [random.randint(10**3, 10**4) for _ in range(5)])
 def test_random_multipop(total):
-    '''
+    """
     Test random multipop.
-    '''
+    """
     myDB, key_val_dict, non_key_set = get_myDB_resources(total)
 
     # Successful random multipop
     while len(key_val_dict):
-        factor   = random.randint(0, len(myDB))
+        factor = random.randint(0, len(myDB))
         prev_len = len(myDB)
         keys_to_pop = list(key_val_dict.keys())[:factor]
         popped_vals = list(myDB.multipop(key_iter=keys_to_pop))
@@ -464,55 +501,60 @@ def test_random_multipop(total):
 
     clean_myDB_resources(myDB)
 
-@pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
+
+@pytest.mark.parametrize("total", [random.randint(10**3, 10**4) for _ in range(5)])
 def test_random_items(total):
-    '''
+    """
     Test random items.
-    '''
+    """
     myDB, key_val_dict, _ = get_myDB_resources(total)
-    myDB_items   = set(myDB.items())
+    myDB_items = set(myDB.items())
     mydict_items = set(key_val_dict.items())
     assert myDB_items == mydict_items
     clean_myDB_resources(myDB)
 
-@pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
+
+@pytest.mark.parametrize("total", [random.randint(10**3, 10**4) for _ in range(5)])
 def test_random_keys(total):
-    '''
+    """
     Test random keys.
-    '''
+    """
     myDB, key_val_dict, _ = get_myDB_resources(total)
-    myDB_keys   = set(myDB.keys())
+    myDB_keys = set(myDB.keys())
     mydict_keys = set(key_val_dict.keys())
     assert myDB_keys == mydict_keys
     clean_myDB_resources(myDB)
 
-@pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
+
+@pytest.mark.parametrize("total", [random.randint(10**3, 10**4) for _ in range(5)])
 def test_random_iters(total):
-    '''
+    """
     Test random iters.
-    '''
+    """
     myDB, key_val_dict, _ = get_myDB_resources(total)
-    selected_keys = list(key_val_dict.keys())[:random.randint(0, total//10)]
+    selected_keys = list(key_val_dict.keys())[: random.randint(0, total // 10)]
     for key in selected_keys:
         assert key in list(iter(myDB))
     clean_myDB_resources(myDB)
 
-@pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
+
+@pytest.mark.parametrize("total", [random.randint(10**3, 10**4) for _ in range(5)])
 def test_random_values(total):
-    '''
+    """
     Test random values.
-    '''
+    """
     myDB, key_val_dict, _ = get_myDB_resources(total)
-    myDB_vals   = set(myDB.values())
+    myDB_vals = set(myDB.values())
     mydict_vals = set(key_val_dict.values())
     assert myDB_vals == mydict_vals
     clean_myDB_resources(myDB)
 
-@pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
+
+@pytest.mark.parametrize("total", [random.randint(10**3, 10**4) for _ in range(5)])
 def test_random_popitem(total):
-    '''
+    """
     Test random popitem.
-    '''
+    """
     myDB, key_val_dict, _ = get_myDB_resources(total)
     while key_val_dict:
         popped_key, popped_val = myDB.popitem()
@@ -520,35 +562,172 @@ def test_random_popitem(total):
         key_val_dict.pop(popped_key)
     clean_myDB_resources(myDB)
 
-@pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
+
+@pytest.mark.parametrize("total", [random.randint(10**3, 10**4) for _ in range(5)])
 def test_random_multipopitem(total):
-    '''
+    """
     Test random multipopitem.
-    '''
+    """
     myDB, key_val_dict, _ = get_myDB_resources(total)
     while len(myDB):
-        num_items = random.randint(0, len(myDB)*2)
-        prev_len  = len(myDB)
+        num_items = random.randint(0, len(myDB) * 2)
+        prev_len = len(myDB)
         popped_items = myDB.multipopitem(num_items=num_items)
-        for popped_key,popped_val in popped_items:
+        for popped_key, popped_val in popped_items:
             assert key_val_dict[popped_key] == popped_val
         assert len(myDB) == max(0, prev_len - num_items)
 
     # multiremove that raises Exception
     with pytest.raises(Exception) as _:
-        myDB.multiremove([None]*total)
+        myDB.multiremove([None] * total)
 
     clean_myDB_resources(myDB)
 
-@pytest.mark.parametrize('total', [random.randint(10**3, 10**4) for _ in range(5)])
+
+@pytest.mark.parametrize("total", [random.randint(10**3, 10**4) for _ in range(5)])
 def test_random_clear(total):
-    '''
+    """
     Test random clear.
-    '''
+    """
     myDB, _, __ = get_myDB_resources(total)
     myDB.clear()
     assert len(myDB) == 0
     clean_myDB_resources(myDB)
 
-if __name__ == '__main__':
+
+def test_popitem_empty_db():
+    """
+    Test that popitem() raises KeyError (not StopIteration) on an empty DB.
+    """
+    myDB = ShareDB(path="./test_popitem_empty", reset=True)
+    with pytest.raises(KeyError):
+        myDB.popitem()
+    myDB.drop()
+
+
+@pytest.mark.parametrize("total", [random.randint(10**2, 10**3) for _ in range(3)])
+def test_pop_with_default(total):
+    """
+    Test pop with a default value for absent keys.
+    """
+    myDB, key_val_dict, non_key_set = get_myDB_resources(total)
+
+    # pop with default returns value for existing keys
+    for key in list(key_val_dict.keys()):
+        val = myDB.pop(key, "sentinel")
+        assert val == key_val_dict[key]
+
+    # pop with default returns default for absent keys
+    for non_key in non_key_set:
+        val = myDB.pop(non_key, "sentinel")
+        assert val == "sentinel"
+
+    # pop without default raises KeyError for absent keys
+    for non_key in non_key_set:
+        with pytest.raises(KeyError):
+            myDB.pop(non_key)
+
+    clean_myDB_resources(myDB)
+
+
+@pytest.mark.parametrize("total", [random.randint(10**2, 10**3) for _ in range(3)])
+def test_random_update(total):
+    """
+    Test update from dict and from iterable of pairs.
+    """
+    myDB, _, __ = get_myDB_resources(0)
+
+    # Build random key-val dict
+    seed = random.random()
+    gri_stream = gri(seed=seed)
+    kv_dict = {}
+    while len(kv_dict) < total:
+        key = next(gri_stream)
+        val = next(gri_stream)
+        kv_dict[key] = val
+
+    # update from dict
+    result = myDB.update(kv_dict)
+    assert result is myDB  # returns self
+    for key, val in kv_dict.items():
+        assert myDB[key] == val
+
+    # update from iterable of pairs
+    kv_pairs = [
+        (k + "_extra", v) for k, v in list(kv_dict.items())[:10] if isinstance(k, str)
+    ]
+    if kv_pairs:
+        myDB.update(kv_pairs)
+        for k, v in kv_pairs:
+            assert myDB[k] == v
+
+    clean_myDB_resources(myDB)
+
+
+@pytest.mark.parametrize("total", [random.randint(10**2, 10**3) for _ in range(3)])
+def test_random_setdefault(total):
+    """
+    Test setdefault: returns existing value if present, inserts and returns default if absent.
+    """
+    myDB, key_val_dict, non_key_set = get_myDB_resources(total)
+
+    # For existing keys, setdefault returns existing value unchanged
+    for key, expected_val in key_val_dict.items():
+        result = myDB.setdefault(key, "new_default")
+        assert result == expected_val
+        assert myDB[key] == expected_val
+
+    # For absent keys, setdefault inserts and returns default
+    for non_key in list(non_key_set)[: min(10, len(non_key_set))]:
+        result = myDB.setdefault(non_key, "inserted_default")
+        assert result == "inserted_default"
+        assert myDB[non_key] == "inserted_default"
+
+    clean_myDB_resources(myDB)
+
+
+def test_sync_trigger():
+    """
+    Test that auto-sync fires after buffer_size insertions, resetting BQSIZE.
+    """
+    myDB = ShareDB(path="./test_sync_trigger", reset=True, buffer_size=10)
+    for i in range(11):
+        myDB[i] = i * 2
+    # After 11 inserts with buffer_size=10, sync should have fired
+    assert myDB.pending_writes < 10
+    myDB.drop()
+
+
+def test_close_reopen_persistence():
+    """
+    Test that data persists after close and reopen.
+    """
+    path = "./test_close_reopen"
+    myDB = ShareDB(path=path, reset=True)
+    kv = {i: i**2 for i in range(50)}
+    for k, v in kv.items():
+        myDB[k] = v
+    myDB.close()
+
+    myDB2 = ShareDB(path=path, reset=False)
+    assert len(myDB2) == len(kv)
+    for k, v in kv.items():
+        assert myDB2[k] == v
+    myDB2.drop()
+
+
+def test_clear_resets_bqsize():
+    """
+    Test that clear() resets BQSIZE to 0.
+    """
+    myDB = ShareDB(path="./test_clear_bqsize", reset=True, buffer_size=10**6)
+    for i in range(50):
+        myDB[i] = i
+    assert myDB.pending_writes > 0
+    myDB.clear()
+    assert myDB.pending_writes == 0
+    myDB.drop()
+
+
+if __name__ == "__main__":
     pass
