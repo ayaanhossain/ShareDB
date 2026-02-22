@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ShareDB"
+dynamic = ["version"]
+description = "An on-disk pythonic embedded key-value store for compressed data storage and distributed data analysis."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.8"
+authors = [
+    { name = "Ayaan Hossain", email = "auh57@psu.edu" },
+]
+keywords = [
+    "lmdb",
+    "embedded",
+    "key",
+    "value",
+    "store",
+    "parallel",
+    "data",
+    "share",
+    "read",
+    "multiprocessing",
+    "db",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Topic :: Database",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+dependencies = [
+    "lmdb>=0.98",
+    "msgpack>=0.6.2",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/ayaanhossain/ShareDB"
+"Bug Reports" = "https://github.com/ayaanhossain/ShareDB/issues"
+Source = "https://github.com/ayaanhossain/ShareDB/"
+
+[tool.setuptools.packages]
+find = { include = ["ShareDB"] }
+
+[tool.setuptools.dynamic]
+version = { attr = "ShareDB.__version__" }
