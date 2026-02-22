@@ -48,7 +48,7 @@ class ShareDB(object):
     is primarily developed and tested using Linux and requires Python 3.8 or above.
     """
 
-    __version__ = "2.0.1"
+    __version__ = "2.0.2"
 
     __author__ = "Ayaan Hossain"
 
