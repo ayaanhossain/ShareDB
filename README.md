@@ -25,7 +25,7 @@
 	    <img src="https://img.shields.io/badge/os-Linux-9cf"
 	     alt="os-badge">
     </a>
-	<a href="./LICENSE">
+	<a href="https://github.com/ayaanhossain/ShareDB/blob/master/LICENSE">
 	    <img src="https://img.shields.io/pypi/l/ShareDB"
 	     alt="license-badge">
     </a>
@@ -90,7 +90,7 @@ True
 - `None` is not a valid key or value in `ShareDB`.
 - When using `serial='msgpack'`, tuples are deserialized as lists (msgpack does not distinguish between tuple and list).
 
-Please see the `/examples/` directory for full examples of `ShareDB` usage.  Please see the [API.md](./docs/API.md) file for API details.
+Please see the `/examples/` directory for full examples of `ShareDB` usage.  Please see the [API.md](https://github.com/ayaanhossain/ShareDB/blob/master/docs/API.md) file for API details.
 
 ### Installation
 One-shot **installation/upgrade** of `ShareDB` from **PyPI**.
@@ -121,10 +121,10 @@ $ pip uninstall ShareDB
 
 `ShareDB` is an **open-source software** under [MIT](https://opensource.org/licenses/MIT) License.
 
-See [LICENSE](./LICENSE) file for more details.
+See [LICENSE](https://github.com/ayaanhossain/ShareDB/blob/master/LICENSE) file for more details.
 
 ### Contributing
-Please **discuss** any issues/bugs you're facing, or any changes/features you have in mind by **opening an issue**, following the [Contributor Covenant](https://www.contributor-covenant.org/version/2/0/code_of_conduct). See [COC.md](./docs/COC.md) file for details. Please provide detailed **information**, and code **snippets** to facilitate debugging.
+Please **discuss** any issues/bugs you're facing, or any changes/features you have in mind by **opening an issue**, following the [Contributor Covenant](https://www.contributor-covenant.org/version/2/0/code_of_conduct). See [COC.md](https://github.com/ayaanhossain/ShareDB/blob/master/docs/COC.md) file for details. Please provide detailed **information**, and code **snippets** to facilitate debugging.
 
 To contribute to `ShareDB`, please **clone** this repository, **commit** your code on a **separate new branch**, and **submit** a **pull request**. Please annotate and describe all **new** and **modified code** with detailed **comments** and **new unit tests** as applicable. Please ensure that modified builds **pass existing unit tests** before sending pull-requests.  For versioning, we use [SemVer](https://semver.org/).
 
@@ -136,4 +136,4 @@ To contribute to `ShareDB`, please **clone** this repository, **commit** your co
 `ShareDB` was originally written to meet data analysis needs in [Prof. Howard Salis](https://twitter.com/hsalis)' Lab at [Penn State University](https://salislab.net/).
 
 ### API
-`ShareDB` API details can be found in the [API.md](./docs/API.md) file.
+`ShareDB` API details can be found in the [API.md](https://github.com/ayaanhossain/ShareDB/blob/master/docs/API.md) file.
